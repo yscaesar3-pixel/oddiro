@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ODDIRO - 色当てクイズ</title>
+<meta name="description" content="5×5のマスの中から色の違う1マスを見つける、色覚クイズゲーム。">
+<meta name="theme-color" content="#1c1b20">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ODDIRO">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#1c1b20;
+    --bg-1:#242329;
+    --bg-2:#2c2b32;
+    --ink-0:#f3f0ea;
+    --ink-1:#b8b3bd;
+    --ink-2:#79747e;
+    --accent: #e0a24b; /* default, overwritten dynamically per session */
+    --accent-soft: rgba(224,162,75,0.18);
+    --danger:#e0645a;
+    --good:#7bc27a;
+    --radius-lg: 28px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --banner-h: 0px;
+  }
+  body.has-banner #app{
+    padding-bottom: calc(var(--safe-bottom) + 10px + var(--banner-h));
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #2a2933 0%, var(--bg-0) 55%);
+    color:var(--ink-0);
+    font-family:'Noto Sans JP', -apple-system, sans-serif;
+    overflow:hidden;
+    overscroll-behavior:none;
+    user-select:none;
+  }
+  .display{font-family:'Zen Maru Gothic', 'Noto Sans JP', sans-serif;}
+
+  #app{
+    position:relative;
+    width:100%; height:100%;
+    max-width:520px; margin:0 auto;
+    display:flex; flex-direction:column;
+    padding-top:calc(var(--safe-top) + 14px);
+    padding-bottom:calc(var(--safe-bottom) + 10px);
+  }
+
+  /* ---------- HUD ---------- */
+  #hud{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 20px; flex-shrink:0;
+  }
+  .hud-block{display:flex; flex-direction:column; gap:2px;}
+  .hud-label{font-size:11px; letter-spacing:.12em; color:var(--ink-2); font-weight:500;}
+  .hud-value{font-size:22px; font-weight:700; font-family:'Zen Maru Gothic';}
+  #stageWrap{display:flex; flex-direction:column; align-items:center; flex:1;}
+  #stageNum{
+    font-size:56px; font-weight:900; font-family:'Zen Maru Gothic';
+    line-height:1; transition: color .25s ease;
+    text-shadow: 0 0 24px var(--accent-soft);
+  }
+  #stageCaption{font-size:11px; color:var(--ink-2); letter-spacing:.14em; margin-top:2px;}
+  .pt-pill{
+    display:flex; align-items:center; gap:6px;
+    background:var(--bg-2); border-radius:100px; padding:6px 12px 6px 8px;
+  }
+  .pt-pill .coin{
+    width:20px; height:20px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffe9b8, var(--accent) 65%);
+    flex-shrink:0;
+  }
+  .pt-pill span{font-size:15px; font-weight:700;}
+
+  /* ---------- GRID ---------- */
+  #stage{
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding: 6px 22px;
+    position:relative;
+  }
+  #grid{
+    display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(5,1fr);
+    gap:10px; width:100%; max-width:440px; aspect-ratio:1/1;
+  }
+  .tile{
+    border-radius:14px;
+    position:relative;
+    cursor:pointer;
+    transform: scale(1);
+    transition: transform .16s cubic-bezier(.2,.9,.3,1.3), filter .25s ease, opacity .35s ease;
+    box-shadow: 0 3px 0 rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .tile:active{ transform: scale(.93); }
+  .tile.dim{ opacity:.28; filter:grayscale(.4); pointer-events:none; }
+  .tile.wrong-shake{ animation: shake .35s; }
+  .tile.correct-pop{ animation: pop .5s cubic-bezier(.2,.9,.3,1.4); }
+  .tile.reveal-pulse{ animation: revealPulse 1s ease; }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);}
+    40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+  @keyframes pop{
+    0%{transform:scale(1);}
+    35%{transform:scale(1.18);}
+    100%{transform:scale(1);}
+  }
+  @keyframes revealPulse{
+    0%,100%{box-shadow:0 3px 0 rgba(0,0,0,.18), 0 0 0 0 rgba(255,255,255,0);}
+    50%{box-shadow:0 3px 0 rgba(0,0,0,.18), 0 0 0 10px rgba(255,255,255,.25);}
+  }
+
+  #burstLayer{position:absolute; inset:0; pointer-events:none; overflow:visible;}
+  .particle{
+    position:absolute; width:8px; height:8px; border-radius:50%;
+    opacity:1; will-change: transform, opacity;
+  }
+
+  /* ---------- ITEM TOOLBAR ---------- */
+  #toolbar{
+    display:flex; justify-content:center; gap:10px;
+    padding: 6px 20px 2px;
+    flex-shrink:0;
+  }
+  .item-btn{
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    background:var(--bg-1); border:1px solid rgba(255,255,255,.05);
+    border-radius:16px; padding:8px 12px;
+    min-width:64px;
+    position:relative;
+    transition: transform .12s ease, opacity .2s ease;
+  }
+  .item-btn:active{transform:scale(.94);}
+  .item-btn.disabled{opacity:.35; pointer-events:none;}
+  .item-btn .ic{font-size:20px;}
+  .item-btn .ct{
+    font-size:11px; font-weight:700; color:var(--ink-1);
+    background:var(--bg-2); border-radius:8px; padding:1px 6px;
+  }
+
+  /* ---------- BOTTOM NAV ---------- */
+  #bottomNav{
+    display:flex; gap:10px; padding: 10px 20px 0; flex-shrink:0;
+  }
+  .nav-btn{
+    flex:1; text-align:center; padding:14px 6px;
+    border-radius:18px; font-weight:700; font-size:12.5px;
+    font-family:'Zen Maru Gothic';
+    border:none; cursor:pointer;
+    white-space:nowrap;
+  }
+  .nav-btn.primary{
+    background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 70%, black));
+    color:#1c1b20;
+  }
+  .nav-btn.secondary{ background:var(--bg-1); color:var(--ink-0); }
+
+  /* ---------- OVERLAYS ---------- */
+  .overlay{
+    position:absolute; inset:0; z-index:50;
+    background:rgba(15,14,17,.72); backdrop-filter: blur(6px);
+    display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .sheet{
+    width:100%; max-width:520px; background:var(--bg-1);
+    border-radius:28px 28px 0 0;
+    padding:22px 20px calc(24px + var(--safe-bottom));
+    transform: translateY(100%);
+    transition: transform .32s cubic-bezier(.2,.9,.25,1);
+    max-height:88vh; overflow-y:auto;
+  }
+  .overlay.show .sheet{ transform:translateY(0); }
+  .sheet-handle{
+    width:36px; height:4px; border-radius:4px; background:var(--ink-2);
+    margin:0 auto 14px;
+  }
+  .sheet h2{
+    font-family:'Zen Maru Gothic'; margin:0 0 4px; font-size:20px;
+  }
+  .sheet .sub{color:var(--ink-2); font-size:13px; margin-bottom:16px;}
+
+  .shop-item{
+    display:flex; align-items:center; gap:12px;
+    background:var(--bg-2); border-radius:18px; padding:12px 14px; margin-bottom:10px;
+  }
+  .shop-item .ic{
+    width:44px; height:44px; border-radius:14px; background:var(--bg-0);
+    display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;
+  }
+  .shop-item .info{flex:1; min-width:0;}
+  .shop-item .info .name{font-weight:700; font-size:14.5px; font-family:'Zen Maru Gothic';}
+  .shop-item .info .desc{font-size:12px; color:var(--ink-2); margin-top:2px; line-height:1.4;}
+  .shop-item .info .own{font-size:11px; color:var(--accent); margin-top:4px; font-weight:700;}
+  .buy-btn{
+    flex-shrink:0; border:none; border-radius:12px; padding:9px 12px;
+    background:var(--bg-0); color:var(--ink-0); font-weight:700; font-size:12.5px;
+    display:flex; align-items:center; gap:5px; cursor:pointer;
+  }
+  .buy-btn .coin-mini{width:11px;height:11px;border-radius:50%; background:var(--accent);}
+  .buy-btn.disabled{opacity:.35;}
+  .buy-btn:active{transform:scale(.95);}
+
+  .ad-card{
+    background: linear-gradient(135deg, var(--accent-soft), transparent);
+    border:1px dashed var(--accent); border-radius:18px; padding:14px;
+    display:flex; align-items:center; gap:12px; margin-bottom:18px;
+  }
+  .ad-card .txt{flex:1;}
+  .ad-card .txt .name{font-weight:700; font-size:14px; font-family:'Zen Maru Gothic';}
+  .ad-card .txt .desc{font-size:12px; color:var(--ink-2); margin-top:2px;}
+  .ad-btn{
+    border:none; border-radius:12px; padding:10px 14px; font-weight:700; font-size:12.5px;
+    background:var(--accent); color:#1c1b20; cursor:pointer; flex-shrink:0;
+  }
+
+  /* result overlay */
+  #resultOverlay .sheet{ text-align:center; }
+  #resultOverlay .medal{
+    width:84px; height:84px; margin:0 auto 10px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:34px;
+    background: radial-gradient(circle at 35% 30%, #fff, var(--accent) 70%);
+  }
+  #resultStage{font-size:42px; font-weight:900; font-family:'Zen Maru Gothic'; margin:4px 0 0;}
+  #resultBest{font-size:13px; color:var(--ink-2); margin-bottom:4px;}
+  #resultEarned{font-size:14px; color:var(--good); font-weight:700; margin-bottom:20px;}
+  .result-actions{display:flex; gap:10px;}
+
+  /* start overlay */
+  #startOverlay{ align-items:center; }
+  #startOverlay .sheet{ border-radius:28px; max-width:420px; text-align:center; transform:translateY(24px); opacity:0; transition:all .35s ease;}
+  #startOverlay.show .sheet{ transform:translateY(0); opacity:1; }
+  .logo-mark{
+    width:70px; height:70px; margin:0 auto 14px; border-radius:22px;
+    display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:5px; padding:9px;
+    background:var(--bg-2);
+  }
+  .logo-mark div{border-radius:6px; background:var(--ink-2);}
+  .logo-mark div:nth-child(2){background:var(--accent);}
+  #startOverlay h1{font-family:'Zen Maru Gothic'; font-size:26px; margin:0 0 6px;}
+  #startOverlay p{color:var(--ink-1); font-size:13.5px; line-height:1.6; margin-bottom:20px;}
+  .best-row{
+    display:flex; justify-content:center; gap:26px; margin-bottom:22px;
+  }
+  .best-row .b{text-align:center;}
+  .best-row .b .n{font-size:20px; font-weight:900; font-family:'Zen Maru Gothic';}
+  .best-row .b .l{font-size:10.5px; color:var(--ink-2); letter-spacing:.1em;}
+
+  .toast{
+    position:absolute; top:calc(var(--safe-top) + 8px); left:50%;
+    transform:translateX(-50%) translateY(-140%);
+    background:var(--bg-2); border-radius:100px; padding:10px 18px;
+    font-size:13px; font-weight:700; z-index:80;
+    display:flex; align-items:center; gap:8px;
+    transition: transform .35s cubic-bezier(.2,.9,.25,1);
+    box-shadow:0 6px 24px rgba(0,0,0,.35);
+    white-space:nowrap;
+  }
+  .toast.show{ transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="hud">
+    <div class="hud-block">
+      <div class="hud-label">BEST</div>
+      <div class="hud-value" id="bestVal">0</div>
+    </div>
+    <div id="stageWrap">
+      <div id="stageNum">1</div>
+      <div id="stageCaption">ちがう色を見つけて</div>
+    </div>
+    <div class="pt-pill"><div class="coin"></div><span id="ptVal">0</span></div>
+  </div>
+
+  <div id="stage">
+    <div id="grid"></div>
+    <div id="burstLayer"></div>
+  </div>
+
+  <div id="toolbar"></div>
+
+  <div id="bottomNav">
+    <button class="nav-btn secondary" id="homeBtn">🏠 HOME</button>
+    <button class="nav-btn secondary" id="shopBtn">🛒 ショップ</button>
+    <button class="nav-btn secondary" id="restartBtn">↻ やりなおす</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- START -->
+  <div class="overlay show" id="startOverlay">
+    <div class="sheet">
+      <div class="logo-mark"><div></div><div></div><div></div><div></div></div>
+      <h1>ODDIRO</h1>
+      <p>5×5のマスの中に、ひとつだけ違う色が隠れている。<br>見つけてタップ、それだけ。<br>間違えるまで、どこまで続けられる？</p>
+      <div class="best-row">
+        <div class="b"><div class="n" id="startBest">0</div><div class="l">ベストステージ</div></div>
+        <div class="b"><div class="n" id="startPt">0</div><div class="l">ポイント</div></div>
+      </div>
+      <div id="stagePickerWrap" style="display:none; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+          <span style="font-size:12px; color:var(--ink-2); letter-spacing:.08em;">開始ステージ</span>
+          <span id="stagePickerVal" style="font-size:20px; font-weight:900; font-family:'Zen Maru Gothic';">1</span>
+        </div>
+        <input type="range" id="stagePickerRange" min="1" max="1" value="1" style="width:100%; accent-color:var(--accent);">
+        <div id="stagePickerTier" style="font-size:11px; color:var(--ink-2); margin-top:6px; text-align:right;"></div>
+      </div>
+      <button class="nav-btn primary" id="startBtn" style="width:100%; padding:16px;">はじめる</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="overlay" id="resultOverlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="medal">😵</div>
+      <div id="stageCaption2" style="font-size:12px;color:var(--ink-2);letter-spacing:.14em;">STAGE</div>
+      <div id="resultStage">1</div>
+      <div id="resultBest">ベスト: 0</div>
+      <div id="resultEarned">+0 pt 獲得</div>
+      <div class="result-actions">
+        <button class="nav-btn secondary" id="resultShopBtn" style="flex:1;">🛒 ショップ</button>
+        <button class="nav-btn primary" id="resultRetryBtn" style="flex:1;">もう一度</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOP -->
+  <div class="overlay" id="shopOverlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <h2 style="margin:0;">ショップ</h2>
+        <button id="shopHomeBtn" style="background:var(--bg-2); border:none; border-radius:100px; padding:8px 14px; color:var(--ink-0); font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:5px;">🏠 HOME</button>
+      </div>
+      <div class="sub">ポイントでアイテムを購入。ゲーム中に使えます。</div>
+
+      <div class="ad-card">
+        <div class="txt">
+          <div class="name">📺 広告を見てポイントGET</div>
+          <div class="desc">動画広告を見ると +25pt もらえる</div>
+        </div>
+        <button class="ad-btn" id="watchAdBtn">見る</button>
+      </div>
+
+      <div id="shopList"></div>
+
+      <h2 style="margin-top:22px;">チェックポイント解放</h2>
+      <div class="sub">一度たどり着いたステージを、ポイントで恒久的に開放。以降そのステージ以下ならどこからでも開始できます。</div>
+      <div id="checkpointList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- persistence ---------------- */
+  const STORE_KEY = "oddiro_save_v1";
+  function loadSave(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(typeof parsed.maxUnlockedStage !== 'number') parsed.maxUnlockedStage = 1;
+        if(!parsed.inv) parsed.inv = { halfHint:0, clarify:0, retry:0, reveal:0 };
+        return parsed;
+      }
+    }catch(e){}
+    return { best:0, points:0, maxUnlockedStage:1, inv:{ halfHint:0, clarify:0, retry:0, reveal:0 } };
+  }
+  function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(save)); }
+  let save = loadSave();
+  const CHECKPOINT_STEP = 10; // checkpoints available every 10 stages
+  function checkpointCost(milestone){ return milestone * 5; }
+
+  /* ---------------- item defs ---------------- */
+  const ITEMS = {
+    halfHint: { name:"ハーフヒント", ic:"🔍", cost:30,
+      desc:"ハズレのマスを半分グレーアウトして、選択肢を絞り込む。" , active:true},
+    clarify:  { name:"見えやすカラー", ic:"🎨", cost:50,
+      desc:"次の1ステージだけ、正解の色の違いをはっきりさせる。", active:true},
+    retry:    { name:"やり直しチケット", ic:"💗", cost:90,
+      desc:"1回だけ間違えてもゲームオーバーにならず、そのステージからやり直せる（自動発動）。", active:false},
+    reveal:   { name:"正解を教える", ic:"💡", cost:140,
+      desc:"今のステージの正解マスを一瞬だけ光らせて教えてくれる。", active:true},
+  };
+
+  /* ---------------- game state ---------------- */
+  let stage = 1;
+  let diffIndex = -1;       // index of the odd tile
+  let dimmedSet = new Set();// tiles dimmed by halfHint this round
+  let clarifyBoost = 0;     // extra lightness delta applied for current stage only
+  let sessionEarned = 0;
+  let gameActive = false;
+  let sessionAccent = pickAccentHue();
+
+  const gridEl = document.getElementById('grid');
+  const stageNumEl = document.getElementById('stageNum');
+  const bestValEl = document.getElementById('bestVal');
+  const ptValEl = document.getElementById('ptVal');
+  const toolbarEl = document.getElementById('toolbar');
+  const burstLayer = document.getElementById('burstLayer');
+  const toastEl = document.getElementById('toast');
+
+  function pickAccentHue(){
+    const h = Math.floor(Math.random()*360);
+    return h;
+  }
+  function applyAccent(h, s, l){
+    document.documentElement.style.setProperty('--accent', `hsl(${h} ${s}% ${l}%)`);
+    document.documentElement.style.setProperty('--accent-soft', `hsla(${h}, ${s}%, ${l}%, 0.18)`);
+  }
+
+  let selectedStartStage = 1;
+
+  function refreshHud(){
+    bestValEl.textContent = save.best;
+    ptValEl.textContent = save.points;
+    document.getElementById('startBest').textContent = save.best;
+    document.getElementById('startPt').textContent = save.points;
+    setupStagePicker();
+  }
+
+  function setupStagePicker(){
+    const wrap = document.getElementById('stagePickerWrap');
+    const range = document.getElementById('stagePickerRange');
+    if(save.maxUnlockedStage > 1){
+      wrap.style.display = 'block';
+      range.max = save.maxUnlockedStage;
+      if(selectedStartStage > save.maxUnlockedStage || selectedStartStage < 1){
+        selectedStartStage = save.maxUnlockedStage;
+      }
+      range.value = selectedStartStage;
+      updateStagePickerLabel();
+    }else{
+      wrap.style.display = 'none';
+      selectedStartStage = 1;
+    }
+  }
+
+  function updateStagePickerLabel(){
+    const range = document.getElementById('stagePickerRange');
+    selectedStartStage = parseInt(range.value, 10);
+    document.getElementById('stagePickerVal').textContent = selectedStartStage;
+    const tier = tierForDiff(diffForStage(selectedStartStage));
+    document.getElementById('stagePickerTier').textContent = `${tier.emoji} ${tier.label}からスタート`;
+  }
+  document.getElementById('stagePickerRange').addEventListener('input', updateStagePickerLabel);
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 1600);
+  }
+
+  /* ---------------- difficulty curve ---------------- */
+  // lightness delta between base tile and odd tile, shrinks as stage rises
+  function diffForStage(s){
+    const base = 30;         // very obvious at stage 1
+    const floor = 3.0;       // lowered floor - true elite-level difficulty, still not literally 0
+    const decay = base - floor;
+    const k = 0.045;         // slightly slower decay so advanced tiers stretch out longer
+    let d = floor + decay * Math.exp(-k * (s-1));
+    return d;
+  }
+
+  function tierForDiff(d){
+    if(d >= 20) return { label:'かんたん', emoji:'🙂' };
+    if(d >= 12) return { label:'ふつう', emoji:'🧐' };
+    if(d >= 7)  return { label:'むずかしい', emoji:'😰' };
+    if(d >= 4)  return { label:'激ムズ', emoji:'🔥' };
+    return { label:'鬼', emoji:'💀' };
+  }
+
+  function buildPuzzle(){
+    const hue = Math.floor(Math.random()*360);
+    const sat = 45 + Math.floor(Math.random()*25); // 45-70
+    const baseL = 38 + Math.floor(Math.random()*18); // 38-56
+    let baseDelta = diffForStage(stage);
+    let delta = baseDelta + clarifyBoost;
+    clarifyBoost = 0;
+    const tier = tierForDiff(baseDelta);
+    document.getElementById('stageCaption').textContent = `${tier.emoji} ${tier.label}`;
+    // randomize direction (lighter or darker) but keep within 8-92 range
+    let dir = Math.random() < 0.5 ? -1 : 1;
+    let oddL = baseL + dir*delta;
+    if(oddL < 8 || oddL > 92){ dir *= -1; oddL = baseL + dir*delta; }
+
+    applyAccent(hue, Math.min(sat+15,90), Math.min(baseL+20,72));
+
+    diffIndex = Math.floor(Math.random()*25);
+    dimmedSet = new Set();
+
+    gridEl.innerHTML = "";
+    for(let i=0;i<25;i++){
+      const t = document.createElement('div');
+      t.className = 'tile';
+      const isOdd = (i === diffIndex);
+      const L = isOdd ? oddL : baseL;
+      t.style.background = `hsl(${hue} ${sat}% ${L}%)`;
+      t.dataset.idx = i;
+      t.addEventListener('click', onTileTap);
+      gridEl.appendChild(t);
+    }
+  }
+
+  function onTileTap(e){
+    if(!gameActive) return;
+    const idx = parseInt(e.currentTarget.dataset.idx,10);
+    if(dimmedSet.has(idx)) return;
+    if(idx === diffIndex){
+      handleCorrect(e.currentTarget);
+    }else{
+      handleWrong(e.currentTarget);
+    }
+  }
+
+  function handleCorrect(tileEl){
+    tileEl.classList.add('correct-pop');
+    burstParticles(tileEl);
+    stage += 1;
+    // trickle points
+    save.points += 2;
+    sessionEarned += 2;
+    if(stage % 5 === 0){
+      save.points += 10;
+      sessionEarned += 10;
+      showToast(`🎉 ステージ${stage-1}クリア！ +10pt ボーナス`);
+    }
+    persist();
+    refreshHud();
+    renderToolbar();
+    setTimeout(()=>{
+      stageNumEl.textContent = stage;
+      buildPuzzle();
+    }, 260);
+  }
+
+  function handleWrong(tileEl){
+    tileEl.classList.add('wrong-shake');
+    navigator.vibrate && navigator.vibrate(60);
+    if(save.inv.retry > 0){
+      save.inv.retry -= 1;
+      persist();
+      renderToolbar();
+      showToast('💗 やり直しチケットを使用！ もう一度このステージから');
+      setTimeout(()=>{ tileEl.classList.remove('wrong-shake'); buildPuzzle(); }, 420);
+      return;
+    }
+    setTimeout(()=> endGame(), 420);
+  }
+
+  function burstParticles(tileEl){
+    const rect = tileEl.getBoundingClientRect();
+    const appRect = document.getElementById('app').getBoundingClientRect();
+    const cx = rect.left - appRect.left + rect.width/2;
+    const cy = rect.top - appRect.top + rect.height/2;
+    const color = tileEl.style.background;
+    for(let i=0;i<14;i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = cx+'px'; p.style.top = cy+'px';
+      p.style.background = color;
+      burstLayer.appendChild(p);
+      const angle = (Math.PI*2)*(i/14) + Math.random()*0.4;
+      const dist = 40 + Math.random()*70;
+      const dx = Math.cos(angle)*dist;
+      const dy = Math.sin(angle)*dist;
+      p.animate([
+        { transform:'translate(0,0) scale(1)', opacity:1 },
+        { transform:`translate(${dx}px, ${dy}px) scale(0)`, opacity:0 }
+      ], { duration: 550+Math.random()*200, easing:'cubic-bezier(.2,.9,.3,1)' });
+      setTimeout(()=> p.remove(), 800);
+    }
+  }
+
+  function endGame(){
+    gameActive = false;
+    const finalStage = stage;
+    const bonus = Math.floor(finalStage * 1.5);
+    save.points += bonus;
+    sessionEarned += bonus;
+    if(finalStage > save.best){ save.best = finalStage; }
+    persist();
+    refreshHud();
+
+    document.getElementById('resultStage').textContent = finalStage;
+    document.getElementById('resultBest').textContent = `ベスト: ${save.best}`;
+    document.getElementById('resultEarned').textContent = `+${sessionEarned}pt 獲得`;
+    openOverlay('resultOverlay');
+  }
+
+  /* ---------------- item use during play ---------------- */
+  function useHalfHint(){
+    if(save.inv.halfHint<=0 || !gameActive) return;
+    if(dimmedSet.size>0){ showToast('このステージでは使用済みです'); return; }
+    save.inv.halfHint -= 1;
+    persist(); renderToolbar();
+    const wrongIdx = [];
+    for(let i=0;i<25;i++) if(i!==diffIndex) wrongIdx.push(i);
+    shuffle(wrongIdx);
+    const toDim = wrongIdx.slice(0, 12); // half of the 24 wrong tiles
+    toDim.forEach(i=>{
+      dimmedSet.add(i);
+      const el = gridEl.children[i];
+      el.classList.add('dim');
+    });
+    showToast('🔍 ハズレを半分消しました');
+  }
+
+  function useClarify(){
+    if(save.inv.clarify<=0 || !gameActive) return;
+    save.inv.clarify -= 1;
+    persist(); renderToolbar();
+    clarifyBoost = 16;
+    showToast('🎨 次のステージは見やすくなります');
+  }
+
+  function useReveal(){
+    if(save.inv.reveal<=0 || !gameActive) return;
+    save.inv.reveal -= 1;
+    persist(); renderToolbar();
+    const el = gridEl.children[diffIndex];
+    el.classList.add('reveal-pulse');
+    setTimeout(()=> el.classList.remove('reveal-pulse'), 1000);
+    showToast('💡 正解のマスを光らせました');
+  }
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+  }
+
+  /* ---------------- toolbar (active items) ---------------- */
+  function renderToolbar(){
+    toolbarEl.innerHTML = "";
+    const actives = [
+      {key:'halfHint', fn:useHalfHint},
+      {key:'clarify', fn:useClarify},
+      {key:'reveal', fn:useReveal},
+    ];
+    actives.forEach(a=>{
+      const def = ITEMS[a.key];
+      const count = save.inv[a.key]||0;
+      const btn = document.createElement('div');
+      btn.className = 'item-btn' + (count<=0 || !gameActive ? ' disabled':'');
+      btn.innerHTML = `<div class="ic">${def.ic}</div><div class="ct">${count}</div>`;
+      btn.addEventListener('click', a.fn);
+      toolbarEl.appendChild(btn);
+    });
+    if(save.inv.retry>0){
+      const badge = document.createElement('div');
+      badge.className = 'item-btn';
+      badge.innerHTML = `<div class="ic">💗</div><div class="ct">×${save.inv.retry} 保険</div>`;
+      toolbarEl.appendChild(badge);
+    }
+  }
+
+  /* ---------------- shop ---------------- */
+  function renderShop(){
+    const list = document.getElementById('shopList');
+    list.innerHTML = "";
+    Object.keys(ITEMS).forEach(key=>{
+      const def = ITEMS[key];
+      const owned = save.inv[key]||0;
+      const row = document.createElement('div');
+      row.className = 'shop-item';
+      row.innerHTML = `
+        <div class="ic">${def.ic}</div>
+        <div class="info">
+          <div class="name">${def.name}</div>
+          <div class="desc">${def.desc}</div>
+          <div class="own">所持: ${owned}</div>
+        </div>
+        <button class="buy-btn ${save.points<def.cost?'disabled':''}">
+          <div class="coin-mini"></div>${def.cost}
+        </button>`;
+      row.querySelector('.buy-btn').addEventListener('click', ()=> buyItem(key));
+      list.appendChild(row);
+    });
+    renderCheckpoints();
+  }
+
+  function renderCheckpoints(){
+    const list = document.getElementById('checkpointList');
+    list.innerHTML = "";
+
+    // next unbought milestone
+    const nextMilestone = save.maxUnlockedStage - (save.maxUnlockedStage % CHECKPOINT_STEP) + CHECKPOINT_STEP;
+    const reachable = save.best >= nextMilestone;
+    const cost = checkpointCost(nextMilestone);
+
+    const row = document.createElement('div');
+    row.className = 'shop-item';
+    if(reachable){
+      row.innerHTML = `
+        <div class="ic">🚩</div>
+        <div class="info">
+          <div class="name">ステージ ${nextMilestone} を解放</div>
+          <div class="desc">恒久的に、ステージ${nextMilestone}以下ならどこからでも開始できるようになります。</div>
+          <div class="own">現在の解放上限: ステージ${save.maxUnlockedStage}</div>
+        </div>
+        <button class="buy-btn ${save.points<cost?'disabled':''}">
+          <div class="coin-mini"></div>${cost}
+        </button>`;
+      row.querySelector('.buy-btn').addEventListener('click', ()=> buyCheckpoint(nextMilestone, cost));
+    }else{
+      row.innerHTML = `
+        <div class="ic">🔒</div>
+        <div class="info">
+          <div class="name">ステージ ${nextMilestone} を解放</div>
+          <div class="desc">このチェックポイントを解放するには、一度プレイでステージ${nextMilestone}に到達する必要があります。(ベスト: ${save.best})</div>
+          <div class="own">現在の解放上限: ステージ${save.maxUnlockedStage}</div>
+        </div>
+        <button class="buy-btn disabled"><div class="coin-mini"></div>${cost}</button>`;
+    }
+    list.appendChild(row);
+  }
+
+  function buyCheckpoint(milestone, cost){
+    if(save.points < cost){ showToast('ポイントが足りません'); return; }
+    save.points -= cost;
+    save.maxUnlockedStage = milestone;
+    persist();
+    refreshHud();
+    renderShop();
+    showToast(`🚩 ステージ${milestone}を解放しました`);
+  }
+
+  function buyItem(key){
+    const def = ITEMS[key];
+    if(save.points < def.cost){ showToast('ポイントが足りません'); return; }
+    save.points -= def.cost;
+    save.inv[key] = (save.inv[key]||0) + 1;
+    persist();
+    refreshHud();
+    renderShop();
+    renderToolbar();
+    showToast(`${def.name} を購入しました`);
+  }
+
+  /* ---------------- AdMob integration ---------------- */
+  // ⚠️ These are Google's OFFICIAL TEST ad unit IDs. They are safe to build and
+  // test with, but MUST be swapped for your real AdMob ad unit IDs (from the
+  // AdMob console) before submitting to Google Play, or ads won't monetize.
+  const AD_CONFIG = {
+    banner: 'ca-app-pub-8174756915786797/6388084996',
+    rewarded: 'ca-app-pub-8174756915786797/6890381941',
+    isTesting: false
+  };
+  let rewardedLoaded = false;
+
+  function isNative(){
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  }
+  function admob(){ return window.Capacitor.Plugins.AdMob; }
+
+  function prepareRewarded(){
+    if(!isNative()) return;
+    admob().prepareRewardVideoAd({ adId: AD_CONFIG.rewarded, isTesting: AD_CONFIG.isTesting }).catch(()=>{});
+  }
+
+  function setupBanner(){
+    const AdMob = admob();
+    AdMob.addListener('bannerAdSizeChanged', (size)=>{
+      if(size && size.height){
+        document.documentElement.style.setProperty('--banner-h', size.height + 'px');
+        document.body.classList.add('has-banner');
+      }
+    });
+    AdMob.showBanner({
+      adId: AD_CONFIG.banner,
+      adSize: 'ADAPTIVE_BANNER',
+      position: 'BOTTOM_CENTER',
+      isTesting: AD_CONFIG.isTesting,
+      margin: 0
+    }).catch(()=>{});
+  }
+
+  function setupRewardedListeners(){
+    const AdMob = admob();
+    AdMob.addListener('onRewardedVideoAdLoaded', ()=>{ rewardedLoaded = true; });
+    AdMob.addListener('onRewardedVideoAdFailedToLoad', ()=>{ rewardedLoaded = false; });
+    AdMob.addListener('onRewardedVideoAdReward', ()=>{
+      save.points += 25;
+      persist();
+      refreshHud();
+      renderShop();
+      showToast('📺 +25pt 獲得！');
+    });
+    AdMob.addListener('onRewardedVideoAdDismissed', ()=>{
+      rewardedLoaded = false;
+      prepareRewarded(); // preload the next one
+    });
+  }
+
+  function initAds(){
+    if(!isNative()) return; // stay silent on plain web/PWA - no native ad SDK there
+    admob().initialize({ initializeForTesting: AD_CONFIG.isTesting }).then(()=>{
+      setupBanner();
+      setupRewardedListeners();
+      prepareRewarded();
+    }).catch(()=>{});
+  }
+
+  document.getElementById('watchAdBtn').addEventListener('click', ()=>{
+    const btn = document.getElementById('watchAdBtn');
+    if(isNative()){
+      if(!rewardedLoaded){
+        showToast('広告を準備中です。少し待ってからお試しください');
+        prepareRewarded();
+        return;
+      }
+      btn.disabled = true;
+      admob().showRewardVideoAd()
+        .catch(()=>{ showToast('広告の表示に失敗しました'); })
+        .finally(()=>{ btn.disabled = false; });
+      return;
+    }
+    // Web/PWA fallback so the flow can still be tested in a browser
+    btn.textContent = '再生中…';
+    btn.disabled = true;
+    setTimeout(()=>{
+      save.points += 25;
+      persist();
+      refreshHud();
+      renderShop();
+      btn.textContent = '見る';
+      btn.disabled = false;
+      showToast('📺 +25pt 獲得！(Webプレビュー用の仮処理)');
+    }, 900);
+  });
+
+  /* ---------------- overlays ---------------- */
+  function openOverlay(id){
+    document.getElementById(id).classList.add('show');
+  }
+  function closeOverlay(id){
+    document.getElementById(id).classList.remove('show');
+  }
+
+  document.getElementById('shopBtn').addEventListener('click', ()=>{ renderShop(); openOverlay('shopOverlay'); });
+  document.getElementById('resultShopBtn').addEventListener('click', ()=>{ renderShop(); openOverlay('shopOverlay'); });
+  document.getElementById('shopOverlay').addEventListener('click', (e)=>{ if(e.target.id==='shopOverlay') closeOverlay('shopOverlay'); });
+
+  function goHome(){
+    if(gameActive){
+      if(stage > save.best){ save.best = stage; persist(); }
+      gameActive = false;
+    }
+    closeOverlay('shopOverlay');
+    closeOverlay('resultOverlay');
+    refreshHud();
+    openOverlay('startOverlay');
+  }
+  document.getElementById('homeBtn').addEventListener('click', goHome);
+  document.getElementById('shopHomeBtn').addEventListener('click', goHome);
+
+  document.getElementById('restartBtn').addEventListener('click', ()=>{ refreshHud(); openOverlay('startOverlay'); });
+  document.getElementById('resultRetryBtn').addEventListener('click', ()=>{ closeOverlay('resultOverlay'); refreshHud(); openOverlay('startOverlay'); });
+  document.getElementById('startBtn').addEventListener('click', ()=>{ closeOverlay('startOverlay'); startGame(selectedStartStage); });
+
+  function startGame(fromStage){
+    stage = fromStage && fromStage >= 1 ? fromStage : 1;
+    sessionEarned = 0;
+    clarifyBoost = 0;
+    gameActive = true;
+    stageNumEl.textContent = stage;
+    closeOverlay('resultOverlay');
+    refreshHud();
+    renderToolbar();
+    buildPuzzle();
+  }
+
+  /* ---------------- init ---------------- */
+  refreshHud();
+  renderToolbar();
+  buildPuzzle();
+  initAds();
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+})();
+</script>
+</body>
+</html>

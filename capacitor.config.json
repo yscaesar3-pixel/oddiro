@@ -1,0 +1,9 @@
+{
+  "appId": "com.yutaXXX.oddiro",
+  "appName": "ODDIRO",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false
+  }
+}

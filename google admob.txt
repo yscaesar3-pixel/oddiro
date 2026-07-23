@@ -1,0 +1,20 @@
+oddiro
+
+
+【Google Admob】
+アプリid
+ca-app-pub-8174756915786797~9300922862
+
+■oddiro_home_banner
+AdMob アプリ ID
+ca-app-pub-8174756915786797~9300922862
+
+AdMob 広告ユニット ID
+ca-app-pub-8174756915786797/6388084996
+
+■oddiro_home_reward
+AdMob アプリ ID
+ca-app-pub-8174756915786797~9300922862
+
+AdMob 広告ユニット ID
+ca-app-pub-8174756915786797/6890381941
