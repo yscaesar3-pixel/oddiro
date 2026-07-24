@@ -767,11 +767,26 @@
   // ⚠️ These are Google's OFFICIAL TEST ad unit IDs. They are safe to build and
   // test with, but MUST be swapped for your real AdMob ad unit IDs (from the
   // AdMob console) before submitting to Google Play, or ads won't monetize.
+  // NOTE: These are Google's OFFICIAL TEST ad unit IDs (different per platform).
+  // They are safe to ship while testing, but MUST be replaced with your real
+  // AdMob ad unit IDs before public release, or you will not earn real revenue.
+  // AdMobでは Android用アプリ / iOS用アプリ をそれぞれ別に登録する必要があり、
+  // 発行される広告ユニットIDもプラットフォームごとに異なります。
   const AD_CONFIG = {
-    banner: 'ca-app-pub-8174756915786797/6388084996',
-    rewarded: 'ca-app-pub-8174756915786797/6890381941',
-    isTesting: false
+    android: {
+      banner: 'ca-app-pub-3940256099942544/6300978111',
+      rewarded: 'ca-app-pub-3940256099942544/5224354917',
+    },
+    ios: {
+      banner: 'ca-app-pub-8174756915786797/6042304321',
+      rewarded: 'ca-app-pub-8174756915786797/9786374142',
+    },
+    isTesting: true // ← 本番リリース時は false に変更
   };
+  function currentPlatformAdIds(){
+    const platform = (window.Capacitor && window.Capacitor.getPlatform) ? window.Capacitor.getPlatform() : 'android';
+    return AD_CONFIG[platform] || AD_CONFIG.android;
+  }
   let rewardedLoaded = false;
 
   function isNative(){
@@ -781,7 +796,7 @@
 
   function prepareRewarded(){
     if(!isNative()) return;
-    admob().prepareRewardVideoAd({ adId: AD_CONFIG.rewarded, isTesting: AD_CONFIG.isTesting }).catch(()=>{});
+    admob().prepareRewardVideoAd({ adId: currentPlatformAdIds().rewarded, isTesting: AD_CONFIG.isTesting }).catch(()=>{});
   }
 
   function setupBanner(){
@@ -793,7 +808,7 @@
       }
     });
     AdMob.showBanner({
-      adId: AD_CONFIG.banner,
+      adId: currentPlatformAdIds().banner,
       adSize: 'ADAPTIVE_BANNER',
       position: 'BOTTOM_CENTER',
       isTesting: AD_CONFIG.isTesting,
@@ -818,13 +833,32 @@
     });
   }
 
+  async function requestTrackingAndConsent(){
+    // iOS-only: App Tracking Transparency + Google's EEA consent flow.
+    // Safe no-ops on Android (methods simply won't be relevant / will resolve quickly).
+    try{
+      const tracking = await admob().trackingAuthorizationStatus();
+      if(tracking && tracking.status === 'notDetermined'){
+        await admob().requestTrackingAuthorization();
+      }
+    }catch(e){ /* not on iOS, or API unavailable - ignore */ }
+    try{
+      const consentInfo = await admob().requestConsentInfo();
+      if(consentInfo && !consentInfo.canRequestAds){
+        await admob().showConsentForm();
+      }
+    }catch(e){ /* consent SDK unavailable - ignore, ads still work outside EEA */ }
+  }
+
   function initAds(){
     if(!isNative()) return; // stay silent on plain web/PWA - no native ad SDK there
-    admob().initialize({ initializeForTesting: AD_CONFIG.isTesting }).then(()=>{
-      setupBanner();
-      setupRewardedListeners();
-      prepareRewarded();
-    }).catch(()=>{});
+    requestTrackingAndConsent().finally(()=>{
+      admob().initialize({ initializeForTesting: AD_CONFIG.isTesting }).then(()=>{
+        setupBanner();
+        setupRewardedListeners();
+        prepareRewarded();
+      }).catch(()=>{});
+    });
   }
 
   document.getElementById('watchAdBtn').addEventListener('click', ()=>{

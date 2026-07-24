@@ -72,12 +72,18 @@ Android Studio → Build → Generate Signed Bundle / APK → Android App Bundle
 
 ## リリース前に必ずやること（広告ID差し替え）
 
-`www/index.html` 内、`AD_CONFIG`という定数に今はGoogleのテスト用広告IDが入っています。
+`www/index.html` 内、`AD_CONFIG`という定数に今はGoogleのテスト用広告IDが入っています。Android用・iOS用で別々のIDを持てる構造になっています。
 
 ```js
 const AD_CONFIG = {
-  banner: 'ca-app-pub-3940256099942544/6300978111',   // ← 実際のバナー広告ユニットIDに差し替え
-  rewarded: 'ca-app-pub-3940256099942544/5224354917',  // ← 実際のリワード広告ユニットIDに差し替え
+  android: {
+    banner: 'ca-app-pub-3940256099942544/6300978111',   // ← Android用の実際のバナーIDに差し替え
+    rewarded: 'ca-app-pub-3940256099942544/5224354917',  // ← Android用の実際のリワードIDに差し替え
+  },
+  ios: {
+    banner: 'ca-app-pub-3940256099942544/2934735716',   // ← iOS用の実際のバナーIDに差し替え
+    rewarded: 'ca-app-pub-3940256099942544/1712485313',  // ← iOS用の実際のリワードIDに差し替え
+  },
   isTesting: true  // ← 本番リリース時は false に変更
 };
 ```
@@ -102,3 +108,70 @@ const AD_CONFIG = {
   ```powershell
   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
   ```
+
+
+---
+
+## iOS版のリリース手順（Codemagic経由・Mac不要）
+
+Macを持っていない前提で、Codemagic（クラウドCI）を使ってビルド〜TestFlightアップロードまで自動化する手順です。
+
+### 0. 前提: Apple Developer Program登録
+[developer.apple.com/programs](https://developer.apple.com/programs/) で個人（Individual）登録。年間$99。
+本人確認に数日かかることがあるので、早めに着手するのがおすすめです。
+
+### 1. App Store Connectでアプリを作成
+[appstoreconnect.apple.com](https://appstoreconnect.apple.com/) → マイApp → 「+」→ 新規App
+- プラットフォーム: iOS
+- 名前: ODDIRO
+- プライマリ言語: 日本語
+- バンドルID: `com.yutaXXX.oddiro`（Identifiers画面で先に登録が必要な場合があります → Certificates, Identifiers & Profiles → Identifiers → 「+」で同じ文字列を登録）
+- SKU: 任意の管理用文字列（例: `oddiro001`）
+
+### 2. App Store Connect APIキーを発行
+App Store Connect → ユーザーとアクセス → 統合 → App Store Connect API → 「+」でキーを発行。
+- 役割: **App Manager**（またはAdmin）
+- 発行される `.p8`ファイル / Key ID / Issuer ID の3つを控えておく（`.p8`は一度しかダウンロードできないので必ず保存）
+
+### 3. Codemagicにサインアップしてリポジトリを接続
+[codemagic.io](https://codemagic.io/) にGitHubアカウントでサインアップ → `yscaesar3-pixel/oddiro`リポジトリを接続。
+
+### 4. Codemagic側にApple連携を登録
+Codemagic → Teams → Integrations → Apple Developer Portal → 「Add integration」
+- 手順2で発行した `.p8` / Key ID / Issuer ID を入力
+- 登録名を `oddiro_asc_key` にする（このプロジェクトの`codemagic.yaml`内で指定している名前と一致させる必要があります。変えたい場合は`codemagic.yaml`内の`app_store_connect: oddiro_asc_key`も合わせて書き換えてください）
+
+### 5. `codemagic.yaml`をリポジトリにpush
+このプロジェクトにはすでに`codemagic.yaml`が含まれています。GitHubにpushするだけでCodemagic側が自動検出します。
+
+```powershell
+cd C:\dev\oddiro
+git add .
+git commit -m "add ios platform and codemagic ci config"
+git push
+```
+
+### 6. Codemagicでビルドを実行
+Codemagic管理画面 → oddiroリポジトリ → workflow `oddiro-ios` → 「Start new build」。
+- 初回は証明書・プロビジョニングプロファイルの自動生成が走るため、数分〜十数分かかります
+- ビルドが成功すると、自動的にTestFlightへアップロードされます（`codemagic.yaml`内で`submit_to_testflight: true`に設定済み）
+
+### 7. TestFlightでテスト配信
+App Store Connect → TestFlight タブ → 内部テスト or 外部テストのグループを作成 → ビルドを割り当て → テスターのメールアドレスを追加。
+外部テストの場合は簡易審査（通常24時間以内）が入ります。
+
+### iOS版で必ず確認・差し替えが必要なもの
+
+- `www/index.html`内`AD_CONFIG`のバナー/リワード広告ID（AdMobで**iOS用アプリ**を別途登録すると、Androidとは別のIDが発行されます）
+- `ios/App/App/Info.plist`内の`GADApplicationIdentifier`（現在はGoogle公式テストID）
+- `codemagic.yaml`内の`bundle_identifier`（すでに`com.yutaXXX.oddiro`で設定済み、変更の必要があれば要修正）
+
+### iOS版で追加対応した仕様
+
+- 画面はiPhone/iPadともに**縦向き固定**にしてあります（ゲームUIが縦画面前提のため）
+- iOS 14.5以降で必須の**トラッキング許可ダイアログ（ATT）**と、EEA圏向けの**同意フォーム**を組み込み済みです（`initAds()`内の`requestTrackingAndConsent()`）
+- AdMob SDKが要求する`SKAdNetworkItems`をInfo.plistに追加済みです
+
+### なぜCocoaPodsを使っていないのか
+
+このプロジェクトはCapacitorの新しいSwift Package Manager（SPM）方式でiOSプラグインを管理しています（`ios/App/CapApp-SPM`フォルダがそれです）。従来の`pod install`が不要なため、CI設定がシンプルになります。

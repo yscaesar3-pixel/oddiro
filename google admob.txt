@@ -18,3 +18,22 @@ ca-app-pub-8174756915786797~9300922862
 
 AdMob 広告ユニット ID
 ca-app-pub-8174756915786797/6890381941
+
+
+『iOS』
+アプリid
+ca-app-pub-8174756915786797~1169517524
+
+■oddiro_ios_home_banner
+AdMob アプリ ID
+ca-app-pub-8174756915786797~1169517524
+
+AdMob 広告ユニット ID
+ca-app-pub-8174756915786797/6042304321
+
+■oddiro_ios_home_reward
+AdMob アプリ ID
+ca-app-pub-8174756915786797~1169517524
+
+AdMob 広告ユニット ID
+ca-app-pub-8174756915786797/9786374142
