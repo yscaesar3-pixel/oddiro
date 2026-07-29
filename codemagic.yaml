@@ -9,6 +9,8 @@ workflows:
       # (名前は任意。登録時に付けた名前と一致させること)
       app_store_connect: oddiro_asc_key
     environment:
+      groups:
+        - ios_signing
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
