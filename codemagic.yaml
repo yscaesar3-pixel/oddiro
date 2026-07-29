@@ -13,7 +13,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.yutaXXX.oddiro"
-      node: 20
+      node: 22
       xcode: latest
       cocoapods: default
     triggering:
