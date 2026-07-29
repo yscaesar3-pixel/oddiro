@@ -4,11 +4,11 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
+      # Codemagic上の「Team integrations」→「Apple Developer Portal」で
+      # App Store Connect API Keyを登録し、ここにその名前を指定してください。
+      # (名前は任意。登録時に付けた名前と一致させること)
       app_store_connect: oddiro_asc_key
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.yutaXXX.oddiro
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
@@ -57,4 +57,6 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+        # 本番審査に自動提出したい場合は下記を true にする（初回は false のまま
+        # 手動でApp Store Connect側から審査提出することを推奨）
         submit_to_app_store: false
