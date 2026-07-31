@@ -43,12 +43,11 @@ workflows:
           keychain initialize
           keychain add-certificates
           xcode-project use-profiles
-      - name: Bump build number to latest TestFlight build + 1
+      - name: Set build number (uses Codemagic's own auto-incrementing counter, always unique)
         script: |
           cd ios/App
-          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID")
-          echo "Latest build number on App Store Connect: $LATEST_BUILD_NUMBER"
-          agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
+          echo "Codemagic build number: $PROJECT_BUILD_NUMBER"
+          agvtool new-version -all "$PROJECT_BUILD_NUMBER"
       - name: Build ipa for distribution
         script: |
           xcode-project build-ipa \
