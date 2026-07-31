@@ -30,8 +30,8 @@
     --radius-lg: 28px;
     --radius-md: 18px;
     --radius-sm: 12px;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: max(env(safe-area-inset-top, 0px), 50px);
+    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
     --banner-h: 0px;
   }
   body.has-banner #app{
@@ -181,7 +181,7 @@
   .sheet{
     width:100%; max-width:520px; background:var(--bg-1);
     border-radius:28px 28px 0 0;
-    padding:22px 20px calc(24px + var(--safe-bottom));
+    padding:22px 20px calc(24px + var(--safe-bottom) + var(--banner-h));
     transform: translateY(100%);
     transition: transform .32s cubic-bezier(.2,.9,.25,1);
     max-height:88vh; overflow-y:auto;

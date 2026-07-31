@@ -1,0 +1,14 @@
+ODDIRO_iOS
+
+Issuer ID
+ef59b577-5b5d-4393-aaae-8085e248ea60
+
+oddiro_asc_key
+(Key: F3B5B5LGXM)
+
+名前
+oddiro-codemagic-admin
+
+adminの方
+キーID
+F3B5B5LGXM
