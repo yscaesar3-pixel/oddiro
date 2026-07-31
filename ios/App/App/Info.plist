@@ -46,6 +46,11 @@
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-8174756915786797~1169517524</string>
 
+	<!-- このアプリは独自の暗号化(輸出規制の対象になるもの)を使用していないため、
+	     毎回のTestFlightアップロードで手動確認が発生しないよう、あらかじめ false を明記しています。 -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<!-- iOS 14.5以降、広告トラッキングの許可を求めるダイアログに表示される説明文 -->
 	<key>NSUserTrackingUsageDescription</key>
 	<string>この情報は、あなたによりマッチした広告を表示するために使用されます。</string>
