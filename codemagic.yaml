@@ -43,11 +43,12 @@ workflows:
           keychain initialize
           keychain add-certificates
           xcode-project use-profiles
-      - name: Set build number (uses Codemagic's own auto-incrementing counter, always unique)
+      - name: Set build number (directly edit the Xcode project file - more reliable than agvtool)
         script: |
-          cd ios/App
           echo "Codemagic build number: $PROJECT_BUILD_NUMBER"
-          agvtool new-version -all "$PROJECT_BUILD_NUMBER"
+          cd ios/App
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9A-Za-z.]*;/CURRENT_PROJECT_VERSION = $PROJECT_BUILD_NUMBER;/g" App.xcodeproj/project.pbxproj
+          grep "CURRENT_PROJECT_VERSION" App.xcodeproj/project.pbxproj
       - name: Build ipa for distribution
         script: |
           xcode-project build-ipa \
