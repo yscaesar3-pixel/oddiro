@@ -781,7 +781,7 @@
       banner: 'ca-app-pub-8174756915786797/6042304321',
       rewarded: 'ca-app-pub-8174756915786797/9786374142',
     },
-    isTesting: false // ← 本番リリース時は false に変更
+    isTesting: true // ← 本番リリース時は false に変更
   };
   function currentPlatformAdIds(){
     const platform = (window.Capacitor && window.Capacitor.getPlatform) ? window.Capacitor.getPlatform() : 'android';
@@ -852,13 +852,19 @@
 
   function initAds(){
     if(!isNative()) return; // stay silent on plain web/PWA - no native ad SDK there
-    requestTrackingAndConsent().finally(()=>{
-      admob().initialize({ initializeForTesting: AD_CONFIG.isTesting }).then(()=>{
-        setupBanner();
-        setupRewardedListeners();
-        prepareRewarded();
-      }).catch(()=>{});
-    });
+    // Wait for the native view transition to fully settle before requesting
+    // App Tracking Transparency. Requesting it too early (immediately on
+    // launch, before the app is fully visible/active) can cause iOS to
+    // silently skip showing the permission dialog on some OS versions.
+    setTimeout(()=>{
+      requestTrackingAndConsent().finally(()=>{
+        admob().initialize({ initializeForTesting: AD_CONFIG.isTesting }).then(()=>{
+          setupBanner();
+          setupRewardedListeners();
+          prepareRewarded();
+        }).catch(()=>{});
+      });
+    }, 1200);
   }
 
   document.getElementById('watchAdBtn').addEventListener('click', ()=>{
