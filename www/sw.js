@@ -1,4 +1,4 @@
-const CACHE_NAME = "oddiro-cache-v2-phase8-1-iphone-layout";
+const CACHE_NAME = "oddiro-cache-v2-phase8-3-brand-haptics";
 const ASSETS = [
   "./index.html",
   "./assets/audio/plimplom.m4a",

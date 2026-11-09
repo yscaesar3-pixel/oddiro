@@ -443,7 +443,7 @@
       if(rankNews)feedbackSound('rank');
       else if(isNewRecord)feedbackSound('record');
       else feedbackSound('achievement');
-      if((rankNews||isNewRecord)&&feedbackSettings.haptics)feedbackHaptic('bonus');
+      if((rankNews||isNewRecord)&&feedbackSettings.haptics)feedbackHaptic(rankNews?'rank':'record');
     }
   }
   function clearResultCelebration(){
@@ -906,17 +906,25 @@
   });
   window.addEventListener('pagehide',stopBgm);
   window.addEventListener('pageshow',()=>{if(feedbackSettings.bgm)startBgm();});
+  // Official Capacitor 8 Haptics native plugin (installed by package.json + cap sync ios).
+  // WKWebView does not reliably support navigator.vibrate: use Taptic Engine via Capacitor.
   function feedbackHaptic(kind){
     if(!feedbackSettings.haptics)return;
     try{
-      const h=window.Capacitor?.Plugins?.Haptics;
-      if(h){
-        const result=kind==='wrong'&&typeof h.notification==='function'
-          ?h.notification({type:'WARNING'})
-          :typeof h.impact==='function'?h.impact({style:kind==='bonus'?'Medium':'Light'}):null;
-        if(result?.catch)result.catch(()=>{});
-      }else if(typeof navigator.vibrate==='function')navigator.vibrate(kind==='wrong'?65:kind==='bonus'?35:15);
-    }catch(_){}
+      const cap=window.Capacitor;
+      if(!cap || !cap.isNativePlatform?.())return;
+      const h=cap.Plugins?.Haptics;
+      if(!h)return;
+      let result;
+      if(kind==='wrong' && typeof h.notification==='function'){
+        result=h.notification({type:'WARNING'});
+      }else if((kind==='bonus'||kind==='rank'||kind==='record') && typeof h.notification==='function'){
+        result=h.notification({type:'SUCCESS'});
+      }else if(typeof h.impact==='function'){
+        result=h.impact({style:kind==='achievement'?'Medium':'Light'});
+      }
+      if(result && typeof result.catch==='function')result.catch(err=>console.warn('Haptics:',err));
+    }catch(err){console.warn('Haptics:',err);}
   }
   function feedback(kind){feedbackSound(kind);feedbackHaptic(kind);}
   function bindFeedbackSettings(){
