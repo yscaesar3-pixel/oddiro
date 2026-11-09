@@ -1,0 +1,7 @@
+Short Plingy Loop
+Author: Fupi
+Source: https://opengameart.org/content/short-plingy-loop
+License: Creative Commons CC0 1.0
+Source asset: plimplom.ogg, provided by user
+Included audio: plimplom.m4a, converted to AAC for iOS compatibility
+License page: https://creativecommons.org/publicdomain/zero/1.0/

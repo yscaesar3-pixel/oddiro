@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>ODDIRO - 色当てクイズ</title>
 <meta name="description" content="5×5のマスの中から色の違う1マスを見つける、色覚クイズゲーム。">
-<meta name="theme-color" content="#1c1b20">
+<meta name="theme-color" content="#111827">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/favicon-48.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -274,6 +274,7 @@
   }
   .toast.show{ transform:translateX(-50%) translateY(0); }
 </style>
+<link rel="stylesheet" href="css/phase2-ui.css">
 </head>
 <body>
 <div id="app">
@@ -290,12 +291,16 @@
     <div class="pt-pill"><div class="coin"></div><span id="ptVal">0</span></div>
   </div>
 
+  <div id="timeHud" hidden><div class="time-header"><span>TIME ATTACK</span><strong id="timeRemaining">60.0</strong><span>秒</span></div><div class="time-meter"><div id="timeMeterFill"></div></div><div class="time-scores"><span class="time-score-primary">正解数 <b id="timeScore">0</b><small> 問</small></span><span>コンボ <b id="timeCombo">0</b></span><span>最高記録 <b id="timeBest">0</b></span></div><div id="timePenalty" class="time-penalty" aria-live="polite" hidden>不正解 −3秒</div></div>
+
+  <div id="dailyHud" hidden><div class="daily-header"><span>DAILY CHALLENGE</span><strong id="dailyQuestion">1 / 10</strong></div><div class="daily-progress" id="dailyProgress"></div><p>間違えた時点で終了・時間制限なし</p></div>
   <div id="stage">
     <div id="grid"></div>
     <div id="burstLayer"></div>
   </div>
 
   <div id="toolbar"></div>
+  <div id="timeCountdown" hidden aria-live="polite"></div>
 
   <div id="bottomNav">
     <button class="nav-btn secondary" id="homeBtn">🏠 HOME</button>
@@ -305,25 +310,39 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- START -->
+  <!-- Ver.2.0 home: classic, time attack and daily challenge. -->
   <div class="overlay show" id="startOverlay">
-    <div class="sheet">
-      <div class="logo-mark"><div></div><div></div><div></div><div></div></div>
-      <h1>ODDIRO</h1>
-      <p>5×5のマスの中に、ひとつだけ違う色が隠れている。<br>見つけてタップ、それだけ。<br>間違えるまで、どこまで続けられる？</p>
-      <div class="best-row">
-        <div class="b"><div class="n" id="startBest">0</div><div class="l">ベストステージ</div></div>
-        <div class="b"><div class="n" id="startPt">0</div><div class="l">ポイント</div></div>
+    <div class="sheet home-sheet">
+      <header class="home-top">
+        <div><div class="home-overline">COLOR DIFFERENCE GAME</div><h1>ODDIRO<span class="home-dot">.</span></h1><div class="home-subtitle">ひとつだけ違う色を見つけよう。</div></div>
+        <div class="home-balance"><span aria-hidden="true">●</span> <strong id="startPt">0</strong><small>pt</small></div>
+      </header>
+      <section class="home-profile" aria-label="プレイヤー情報">
+        <div class="profile-icon">◈</div>
+        <div class="profile-main"><div class="profile-topline" id="homeRank">RANK 1</div><div class="profile-title" id="homeTitle">色の見習い</div><div class="home-xp-track"><div id="homeXpFill"></div></div><div class="profile-xp" id="homeXpText">0 / 100 XP</div></div>
+        <div class="home-best"><b id="startBest">0</b><small>BEST</small></div>
+      </section>
+      <div class="home-section-label">ゲームモード <span>SELECT MODE</span></div>
+      <section class="home-modes" aria-label="ゲームモード">
+        <div class="mode-card mode-current" id="classicModeCard" role="button" tabindex="0"><div class="mode-symbol">∞</div><div class="mode-copy"><strong>クラシック</strong><small>時間制限なしで限界に挑戦</small></div><span class="mode-mark">選択中 ✓</span></div>
+        <div class="mode-card" id="timeModeCard" role="button" tabindex="0"><div class="mode-symbol">◷</div><div class="mode-copy"><strong>タイムアタック</strong><small>60秒でどこまで進める？</small></div><span class="mode-mark">選択する</span></div>
+        <div class="mode-card" id="dailyModeCard" role="button" tabindex="0"><div class="mode-symbol">▦</div><div class="mode-copy"><strong>デイリーチャレンジ</strong><small>毎日10問の特別な挑戦</small></div><span class="mode-mark">選択する</span></div>
+      </section>
+      <div id="stagePickerWrap" class="home-stage-picker" style="display:none">
+        <div class="picker-row"><label for="stagePickerRange">開始ステージ</label><strong id="stagePickerVal">1</strong></div>
+        <input type="range" id="stagePickerRange" min="1" max="1" value="1">
+        <div id="stagePickerTier" class="picker-hint"></div>
       </div>
-      <div id="stagePickerWrap" style="display:none; margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
-          <span style="font-size:12px; color:var(--ink-2); letter-spacing:.08em;">開始ステージ</span>
-          <span id="stagePickerVal" style="font-size:20px; font-weight:900; font-family:'Zen Maru Gothic';">1</span>
-        </div>
-        <input type="range" id="stagePickerRange" min="1" max="1" value="1" style="width:100%; accent-color:var(--accent);">
-        <div id="stagePickerTier" style="font-size:11px; color:var(--ink-2); margin-top:6px; text-align:right;"></div>
-      </div>
-      <button class="nav-btn primary" id="startBtn" style="width:100%; padding:16px;">はじめる</button>
+      <button class="nav-btn primary home-play" id="startBtn">クラシックをはじめる <span aria-hidden="true">→</span></button>
+      <button type="button" class="nav-btn secondary home-shop-link" id="homeShopBtn" style="width:100%;min-height:48px;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;">🛒 ショップ・カスタマイズ <span aria-hidden="true">→</span></button>
+      <button type="button" id="homeProfileBtn" class="nav-btn secondary home-progress-link">🏅 ランク・称号・実績・統計 →</button>
+      <section class="feedback-settings" aria-label="演出設定">
+        <span>演出設定</span>
+        <label><input type="checkbox" id="odSoundToggle" checked> 効果音</label>
+        <label><input type="checkbox" id="odBgmToggle" checked> BGM</label>
+        <label><input type="checkbox" id="odHapticToggle" checked> 振動</label>
+      </section>
+      <div class="home-footnote">アイテム・タイル・テーマ・エフェクトを購入・変更できます。</div>
     </div>
   </div>
 
@@ -332,13 +351,16 @@
     <div class="sheet">
       <div class="sheet-handle"></div>
       <div class="medal">😵</div>
+      <div id="resultCelebration" class="od-celebration" role="status" aria-live="polite" hidden></div>
       <div id="stageCaption2" style="font-size:12px;color:var(--ink-2);letter-spacing:.14em;">STAGE</div>
       <div id="resultStage">1</div>
       <div id="resultBest">ベスト: 0</div>
       <div id="resultEarned">+0 pt 獲得</div>
+      <div id="resultProgress" class="result-progress" hidden></div>
       <div class="result-actions">
         <button class="nav-btn secondary" id="resultShopBtn" style="flex:1;">🛒 ショップ</button>
         <button class="nav-btn primary" id="resultRetryBtn" style="flex:1;">もう一度</button>
+        <button class="nav-btn primary" id="dailyAdRetryBtn" style="flex:1;" hidden>広告を見て再挑戦</button>
       </div>
     </div>
   </div>
@@ -346,12 +368,13 @@
   <!-- SHOP -->
   <div class="overlay" id="shopOverlay">
     <div class="sheet">
-      <div class="sheet-handle"></div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <h2 style="margin:0;">ショップ</h2>
-        <button id="shopHomeBtn" style="background:var(--bg-2); border:none; border-radius:100px; padding:8px 14px; color:var(--ink-0); font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:5px;">🏠 HOME</button>
+        <button id="shopHomeBtn" style="background:var(--bg-2); border:none; border-radius:100px; padding:8px 14px; color:var(--ink-0); font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:5px;">← 戻る</button>
       </div>
-      <div class="sub">ポイントでアイテムを購入。ゲーム中に使えます。</div>
+      <div class="shop-wallet" aria-live="polite"><span>● 保有ポイント</span><strong><span id="shopPoints">0</span> <small>pt</small></strong></div>
+      <div class="sub">アイテムや外観をポイントで購入できます。</div>
+      <div class="cosmetic-tabs" role="tablist" aria-label="ショップの種類"><button type="button" class="cosmetic-tab selected" data-tab="items">アイテム</button><button type="button" class="cosmetic-tab" data-tab="cosmetics">カスタマイズ</button><button type="button" class="cosmetic-tab" data-tab="checkpoints">チェックポイント</button></div>
 
       <div class="ad-card">
         <div class="txt">
@@ -361,36 +384,119 @@
         <button class="ad-btn" id="watchAdBtn">見る</button>
       </div>
 
-      <div id="shopList"></div>
+      <section class="shop-section" id="shopItemsSection"><div id="shopList"></div></section>
+      <section class="shop-section" id="shopCosmeticsSection" hidden><p class="cosmetic-info">購入した外観は永久に使えます。購入前でも見た目をプレビューできます。</p><div id="cosmeticList"></div></section>
+      <section class="shop-section" id="shopCheckpointsSection" hidden>
 
       <h2 style="margin-top:22px;">チェックポイント解放</h2>
       <div class="sub">一度たどり着いたステージを、ポイントで恒久的に開放。以降そのステージ以下ならどこからでも開始できます。</div>
-      <div id="checkpointList"></div>
+      <div id="checkpointList"></div></section>
+    </div>
+  </div>
+
+
+  <!-- PHASE 6: profile / achievements -->
+  <div class="overlay" id="profileOverlay" aria-label="プロフィール画面">
+    <div class="sheet progression-page">
+      <header class="progress-header"><h2>プロフィール</h2><button type="button" id="profileBack" class="progress-back">← 戻る</button></header>
+      <div class="progress-rank"><div class="progress-rank-top"><strong id="profileRank">RANK 1</strong><span id="profileTotalXp">0 XP</span></div><div class="progress-rank-track"><div id="profileRankFill"></div></div><small id="profileRankNext">次のランクまで100 XP</small></div>
+      <div class="progress-current-title">装備中の称号：<strong id="profileEquippedTitle">色の見習い</strong></div>
+      <div class="progress-tabs"><button type="button" data-progtab="achievements" class="selected">実績</button><button type="button" data-progtab="titles">称号</button><button type="button" data-progtab="stats">統計</button></div>
+      <div id="profileContent" aria-live="polite"></div>
     </div>
   </div>
 
 </div>
 
+<script src="js/phase1-storage.js"></script>
+<script src="js/phase6-progression.js"></script>
 <script>
 (function(){
   "use strict";
 
   /* ---------------- persistence ---------------- */
-  const STORE_KEY = "oddiro_save_v1";
-  function loadSave(){
-    try{
-      const raw = localStorage.getItem(STORE_KEY);
-      if(raw){
-        const parsed = JSON.parse(raw);
-        if(typeof parsed.maxUnlockedStage !== 'number') parsed.maxUnlockedStage = 1;
-        if(!parsed.inv) parsed.inv = { halfHint:0, clarify:0, retry:0, reveal:0 };
-        return parsed;
-      }
-    }catch(e){}
-    return { best:0, points:0, maxUnlockedStage:1, inv:{ halfHint:0, clarify:0, retry:0, reveal:0 } };
+  const save = window.OddiroStorage.load();
+  const progression = window.OddiroProgression;
+  let profileTab='achievements';
+  let pendingProgressNews=[];
+  let resultProgressNews=[];
+  let classicBestAtStart=save.best||0;
+  function renderResultCelebration(isNewRecord=false){
+    const banner=document.getElementById('resultCelebration');
+    const list=resultProgressNews||[];
+    const rankNews=list.find(n=>n.startsWith('ランク '));
+    const achieved=list.filter(n=>n.startsWith('実績「'));
+    const titleNews=list.filter(n=>n.startsWith('称号解放：'));
+    const parts=[];
+    if(isNewRecord)parts.push('<span class="od-celebration-pill">✦ NEW RECORD!</span>');
+    if(rankNews)parts.push('<span class="od-celebration-pill">⬆ ランクアップ！</span>');
+    if(achieved.length)parts.push('<span class="od-celebration-pill">🏆 新しい実績 '+achieved.length+'件</span>');
+    if(titleNews.length)parts.push('<span class="od-celebration-pill">🏅 新しい称号 '+titleNews.length+'件</span>');
+    banner.replaceChildren();
+    banner.hidden=parts.length===0;
+    if(parts.length){
+      // Trusted static labels; all dynamic achievement names remain in textContent-only resultProgress.
+      for(const markup of parts){const el=document.createElement('div');el.innerHTML=markup;banner.appendChild(el.firstElementChild);}
+      banner.classList.remove('od-celebration-active');
+      void banner.offsetWidth;
+      banner.classList.add('od-celebration-active');
+      if(rankNews)feedbackSound('rank');
+      else if(isNewRecord)feedbackSound('record');
+      else feedbackSound('achievement');
+      if((rankNews||isNewRecord)&&feedbackSettings.haptics)feedbackHaptic('bonus');
+    }
   }
-  function persist(){ localStorage.setItem(STORE_KEY, JSON.stringify(save)); }
-  let save = loadSave();
+  function clearResultCelebration(){
+    const banner=document.getElementById('resultCelebration');
+    banner.hidden=true;banner.classList.remove('od-celebration-active');banner.replaceChildren();
+    resultProgressNews=[];
+  }
+  let progressionInProgress=false;
+  function processProgression(showInResult=false){
+    if(progressionInProgress)return;
+    progressionInProgress=true;
+    try{
+      const news=progression.reconcile(save);
+      if(news.length){persist();refreshHud();}
+      if(!showInResult && gameActive && activeMode==='classic') pendingProgressNews.push(...news);
+      if(showInResult){
+        const displayNews=[...pendingProgressNews,...news];pendingProgressNews=[];
+        resultProgressNews=displayNews;
+        const el=document.getElementById('resultProgress');
+        el.replaceChildren();
+        el.hidden=displayNews.length===0;
+        for(const item of displayNews){const line=document.createElement('div');line.textContent=item;el.appendChild(line);}
+      }
+      return news;
+    }finally{progressionInProgress=false;}
+  }
+  function showProfile(){
+    progression.ensure(save);
+    const x=progression.rankInfo(save.progress.totalXp);
+    document.getElementById('profileRank').textContent='RANK '+x.rank;
+    document.getElementById('profileTotalXp').textContent=save.progress.totalXp.toLocaleString('ja-JP')+' XP';
+    document.getElementById('profileRankFill').style.width=(x.progress/x.need*100)+'%';
+    document.getElementById('profileRankNext').textContent='次のランクまで '+(x.need-x.progress)+' XP';
+    const chosen=progression.TITLES.find(t=>t.id===save.progress.equippedTitle);
+    document.getElementById('profileEquippedTitle').textContent=chosen?.name||'色の見習い';
+    document.querySelectorAll('[data-progtab]').forEach(b=>b.classList.toggle('selected',b.dataset.progtab===profileTab));
+    const content=document.getElementById('profileContent');content.replaceChildren();
+    if(profileTab==='stats'){
+      const records=[['クラシック最高到達',save.best+' STAGE'],['タイムアタック最高正解',save.timeAttack.bestScore+' 問'],['デイリー挑戦日数',save.daily.totalDays+' 日'],['デイリー全問正解',save.daily.perfectDays+' 日'],['連続挑戦日数',save.daily.currentStreak+' 日'],['最長連続挑戦',save.daily.longestStreak+' 日'],['総プレイ回数（記録分）',save.stats.totalGames+' 回'],['総正解数（記録分）',save.stats.totalCorrect+' 問'],['総ミス数（記録分）',save.stats.totalWrong+' 回']];
+      for(const [label,value] of records){const r=document.createElement('div');r.className='progress-item';const l=document.createElement('span');l.textContent=label;const v=document.createElement('strong');v.textContent=value;r.append(l,v);content.appendChild(r);}
+      const note=document.createElement('p');note.className='progress-note';note.textContent='一部の累計統計はVer.2.0以降の記録です。過去の不明な数値は推定していません。';content.appendChild(note);
+    }else if(profileTab==='titles'){
+      for(const t of progression.TITLES){const owned=save.progress.unlockedTitles.includes(t.id);const r=document.createElement('div');r.className='progress-item';const info=document.createElement('div');const b=document.createElement('strong');b.textContent=(owned?'🏅 ':'🔒 ')+t.name;const sub=document.createElement('small');sub.textContent=t.desc;info.append(b,sub);r.appendChild(info);
+        if(owned){const btn=document.createElement('button');btn.textContent=save.progress.equippedTitle===t.id?'装備中':'装備';btn.disabled=save.progress.equippedTitle===t.id;btn.onclick=()=>{save.progress.equippedTitle=t.id;persist();refreshHud();showProfile();};r.appendChild(btn);}content.appendChild(r);}
+    }else{
+      for(const a of progression.ACHIEVEMENTS){const earned=save.progress.unlockedAchievements.includes(a.id);const r=document.createElement('div');r.className='progress-item';const info=document.createElement('div');const b=document.createElement('strong');b.textContent=(earned?'🏆 ':'🔒 ')+a.name;const sub=document.createElement('small');sub.textContent=a.desc;info.append(b,sub);const state=document.createElement('span');state.textContent=earned?'達成済み':'+'+a.points+'pt';r.append(info,state);content.appendChild(r);}
+    }
+    openOverlay('profileOverlay');
+  }
+
+  function persist(){
+    if(!window.OddiroStorage.persist(save)) showToast('保存できませんでした。端末の空き容量を確認してください。');
+  }
   const CHECKPOINT_STEP = 10; // checkpoints available every 10 stages
   function checkpointCost(milestone){ return milestone * 5; }
 
@@ -413,6 +519,11 @@
   let clarifyBoost = 0;     // extra lightness delta applied for current stage only
   let sessionEarned = 0;
   let gameActive = false;
+  let inputLocked = false;
+  let sessionStartStage = 1;
+  let sessionCorrect = 0;
+  let sessionId = null;
+  let resultCommitted = false;
   let sessionAccent = pickAccentHue();
 
   const gridEl = document.getElementById('grid');
@@ -432,14 +543,276 @@
     document.documentElement.style.setProperty('--accent-soft', `hsla(${h}, ${s}%, ${l}%, 0.18)`);
   }
 
+  let dailyNumber=0, dailyDate=null, dailyRetry=false, dailyFinishing=false;
+  let rewardedPurpose=null, rewardedPending=false;
   let selectedStartStage = 1;
+  let selectedMode = 'classic';
+  let activeMode = 'classic';
+  const TIME_LIMIT_MS = 60000;
+  const TIME_PENALTY_MS = 3000;
+  const TIME_DIFFS = [25,20,16,13,10,8];
+  let timeEndAt = 0;
+  let timeScore = 0;
+  let timeCombo = 0;
+  let timeBestCombo = 0;
+  let timeComboAwards = 0;
+  let timeTimerId = null;
+  let countdownId = null;
+  let timeSessionEarned = 0;
+  let timeWrong = 0;
+  let timeStarted = false;
+  let timeFinalizing = false;
+  let timePenaltyHandle = null;
+  function clearTimeFeedback(){
+    clearTimeout(timePenaltyHandle);timePenaltyHandle=null;
+    const penalty=document.getElementById('timePenalty');
+    penalty.hidden=true;penalty.classList.remove('visible');
+    clearTimeout(showToast._t);toastEl.classList.remove('show');
+  }
+  function showTimePenalty(){
+    const penalty=document.getElementById('timePenalty');
+    clearTimeout(timePenaltyHandle);
+    penalty.hidden=false;penalty.classList.remove('visible');
+    void penalty.offsetWidth; // Restart the feedback animation on repeated misses.
+    penalty.classList.add('visible');
+    timePenaltyHandle=setTimeout(()=>{penalty.classList.remove('visible');penalty.hidden=true;},950);
+  }
+  function timeDiffForScore(n){ return TIME_DIFFS[n<5?0:n<10?1:n<15?2:n<20?3:n<30?4:5]; }
+  function remainingMs(){ return Math.max(0,timeEndAt-Date.now()); }
+  function updateTimeHud(){
+    const rem = remainingMs();
+    document.getElementById('timeRemaining').textContent=(rem/1000).toFixed(1);
+    document.getElementById('timeMeterFill').style.width=(rem/TIME_LIMIT_MS*100)+'%';
+    document.getElementById('timeScore').textContent=timeScore;
+    document.getElementById('timeCombo').textContent=timeCombo;
+    document.getElementById('timeBest').textContent=save.timeAttack.bestScore||0;
+  }
+  function clearTimeHandles(){
+    if(timeTimerId!==null) clearInterval(timeTimerId);
+    if(countdownId!==null) clearInterval(countdownId);
+    timeTimerId=null;countdownId=null;
+    document.getElementById('timeCountdown').hidden=true;
+  }
+  function setModeUI(mode){
+    selectedMode=mode;
+    for(const [id,name] of [['classicModeCard','classic'],['timeModeCard','time'],['dailyModeCard','daily']]){
+      const node=document.getElementById(id);
+      node.classList.toggle('mode-current',name===mode);
+      node.querySelector('.mode-mark').textContent=name===mode?'選択中 ✓':'選択する';
+    }
+    document.getElementById('stagePickerWrap').style.display=mode==='classic' && save.maxUnlockedStage>1?'':'none';
+    document.getElementById('startBtn').innerHTML=mode==='classic'?'クラシックをはじめる <span aria-hidden="true">→</span>':mode==='time'?'60秒チャレンジをはじめる <span aria-hidden="true">→</span>':dailyButtonText();
+    document.querySelector('.home-best small').textContent=mode==='time'?'TIME BEST':mode==='daily'?'今日の最高':'BEST';
+    document.getElementById('startBest').textContent=mode==='time'?(save.timeAttack.bestScore||0):mode==='daily'?dailyToday().best:save.best;
+  }
+  for(const [id,mode] of [['classicModeCard','classic'],['timeModeCard','time'],['dailyModeCard','daily']]){
+    const node=document.getElementById(id);
+    node.addEventListener('click',()=>setModeUI(mode));
+    node.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setModeUI(mode);}});
+  }
+  // DATE: Asia/Tokyo, stable for daily challenge across time zones.
+  function jstDate(){const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const get=t=>parts.find(p=>p.type===t).value;return `${get('year')}-${get('month')}-${get('day')}`;}
+  function dailyRecord(date){
+    if(!save.daily.history)save.daily.history={};
+    if(!save.daily.history[date])save.daily.history[date]={first:null,retry:null,retryUnlocked:false,retryStarted:false,retryFinished:false,best:0,pointsGranted:0,xpGranted:0,streakCounted:false};
+    return save.daily.history[date];
+  }
+  function dailyToday(){return dailyRecord(jstDate());}
+  function dailyButtonText(){
+    const d=dailyToday();
+    if(save.activeSession?.mode==='daily' && save.activeSession.date===jstDate())return 'デイリーを再開する →';
+    if(d.first===null)return '今日のチャレンジを始める →';
+    if(d.retryFinished||d.best===10)return '本日の挑戦は終了 ✓';
+    return d.retryUnlocked?'再挑戦する →':'広告で1回再挑戦 →';
+  }
+  function dailyReward(n){return n===10?50:n>=7?n*2+10:n>=4?n*2+5:n*2;}
+  function dailyXp(n){return 15*n+(n===10?50:0);}
+  function dailySeed(date,question){
+    let h=2166136261;const word='ODDIRO-V2|'+date+'|'+question;
+    for(let i=0;i<word.length;i++){h^=word.charCodeAt(i);h=Math.imul(h,16777619);}
+    return h>>>0;
+  }
+  function dailyRng(date,question){let a=dailySeed(date,question);return ()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+  function buildDailyPuzzle(){
+    const random=dailyRng(dailyDate,dailyNumber);
+    const hue=Math.floor(random()*360),sat=45+Math.floor(random()*25),baseL=38+Math.floor(random()*18);
+    const diff=[22,19,16,13,10,8,6,5,4,3.5][dailyNumber];
+    let dir=random()<.5?-1:1, oddL=baseL+dir*diff;
+    if(oddL<8||oddL>92)oddL=baseL-dir*diff;
+    diffIndex=Math.floor(random()*25);dimmedSet=new Set();
+    gridEl.innerHTML='';
+    for(let i=0;i<25;i++){
+      const tile=document.createElement('div');tile.className='tile';tile.dataset.idx=i;
+      tile.style.background=`hsl(${hue} ${sat}% ${i===diffIndex?oddL:baseL}%)`;
+      applyTileShape(tile);tile.addEventListener('click',onTileTap);gridEl.appendChild(tile);
+    }
+    document.getElementById('dailyQuestion').textContent=(dailyNumber+1)+' / 10';
+    document.getElementById('dailyProgress').innerHTML=Array.from({length:10},(_,i)=>`<span class="${i<dailyNumber?'complete':''}"></span>`).join('');
+  }
+  function restoreClassicHud(){
+    document.getElementById('dailyHud').hidden=true;
+    document.getElementById('timeHud').hidden=true;
+    document.getElementById('hud').hidden=false;
+    document.getElementById('toolbar').hidden=false;
+    document.getElementById('shopBtn').hidden=false;
+    document.getElementById('restartBtn').hidden=false;
+  }
+  function startDaily(){
+    const date=jstDate(),d=dailyToday(),session=save.activeSession;
+    if(session?.mode==='daily' && session.date===date){
+      dailyDate=date;dailyRetry=!!session.retry;dailyNumber=Math.max(0,Math.min(9,session.question||0));
+    }else if(d.first===null){dailyDate=date;dailyRetry=false;dailyNumber=0;}
+    else if(d.retryUnlocked&&!d.retryFinished&&!d.retryStarted){dailyDate=date;dailyRetry=true;dailyNumber=0;d.retryStarted=true;}
+    else if(d.first!==null&&!d.retryUnlocked&&!d.retryStarted&&!d.retryFinished&&d.best<10){requestDailyAd();openOverlay('startOverlay');return;}
+    else {showToast('初回終了後の広告再挑戦は結果画面から利用できます');refreshHud();openOverlay('startOverlay');return;}
+    activeMode='daily';dailyFinishing=false;gameActive=true;inputLocked=false;
+    document.getElementById('dailyHud').hidden=false;
+    document.getElementById('timeHud').hidden=true;
+    document.getElementById('hud').hidden=true;
+    document.getElementById('toolbar').hidden=true;
+    document.getElementById('shopBtn').hidden=true;
+    document.getElementById('restartBtn').hidden=true;
+    document.getElementById('dailyAdRetryBtn').hidden=true;
+    save.activeSession={mode:'daily',date:dailyDate,retry:dailyRetry,question:dailyNumber};
+    persist();buildPuzzle();
+  }
+  function updateDailyStreak(date,d){
+    if(d.streakCounted)return;
+    const dates=Object.keys(save.daily.history).filter(k=>save.daily.history[k].streakCounted).sort();
+    const previous=dates.at(-1);
+    const yesterday=new Date(date+'T00:00:00Z');yesterday.setUTCDate(yesterday.getUTCDate()-1);
+    const before=yesterday.toISOString().slice(0,10);
+    save.daily.currentStreak=previous===before?(save.daily.currentStreak||0)+1:1;
+    save.daily.longestStreak=Math.max(save.daily.longestStreak||0,save.daily.currentStreak);
+    save.daily.totalDays=(save.daily.totalDays||0)+1;
+    d.streakCounted=true;
+    const n=save.daily.currentStreak;
+    const streakBonus=n===3?10:n===7?30:n>=30&&n%30===0?100:0;
+    if(streakBonus){save.points+=streakBonus;d.streakBonus=streakBonus;}
+  }
+  function finishDaily(){
+    if(dailyFinishing||activeMode!=='daily')return;
+    dailyFinishing=true;gameActive=false;inputLocked=true;
+    const d=dailyRecord(dailyDate),score=dailyNumber;
+    const previousDailyBest=d.best||0;
+    if(dailyRetry){d.retry=score;d.retryFinished=true;}else d.first=score;
+    const prevPoints=d.pointsGranted||0,prevXp=d.xpGranted||0;
+    d.best=Math.max(d.best||0,score);
+    const pointsNow=dailyReward(d.best),xpNow=dailyXp(d.best);
+    const pointsAdd=Math.max(0,pointsNow-prevPoints),xpAdd=Math.max(0,xpNow-prevXp);
+    d.pointsGranted=pointsNow;d.xpGranted=xpNow;
+    save.points+=pointsAdd;save.progress.totalXp=(save.progress.totalXp||0)+xpAdd;
+    updateDailyStreak(dailyDate,d);
+    if(d.best===10&&!d.perfectCounted){save.daily.perfectDays=(save.daily.perfectDays||0)+1;d.perfectCounted=true;}
+    save.stats.totalGames=(save.stats.totalGames||0)+1;
+    save.stats.totalCorrect=(save.stats.totalCorrect||0)+score;
+    if(score<10)save.stats.totalWrong=(save.stats.totalWrong||0)+1;
+    save.activeSession=null;processProgression(true);persist();refreshHud();
+    document.querySelector('#resultOverlay .medal').textContent=score===10?'🏆':'📅';
+    document.getElementById('stageCaption2').textContent='DAILY CHALLENGE · 正解数';
+    document.getElementById('resultStage').textContent=score+' / 10';
+    document.getElementById('resultBest').textContent='今日の最高 '+d.best+' / 10';
+    document.getElementById('resultEarned').textContent=`+${pointsAdd+(d.streakBonus&&!dailyRetry?d.streakBonus:0)}pt / +${xpAdd}XP 獲得`;
+    document.getElementById('resultShopBtn').hidden=true;
+    document.getElementById('resultRetryBtn').textContent='ホームへ';
+    document.getElementById('dailyAdRetryBtn').hidden=!(d.first!==null&&!d.retryUnlocked&&!d.retryStarted&&!d.retryFinished&&d.best<10);
+    openOverlay('resultOverlay');
+    renderResultCelebration(score>previousDailyBest && previousDailyBest>0 || score===10 && previousDailyBest<10);
+  }
+  function requestDailyAd(){
+    const d=dailyToday();
+    if(d.first===null||d.retryUnlocked||d.retryStarted||d.retryFinished||d.best===10)return;
+    if(isNative()){
+      if(!rewardedLoaded){showToast('広告を利用できません。再度お試しください');prepareRewarded();return;}
+      rewardedPurpose='daily_retry';rewardedPending=true;
+      document.getElementById('dailyAdRetryBtn').disabled=true;
+      admob().showRewardVideoAd().catch(()=>{rewardedPurpose=null;rewardedPending=false;showToast('広告の表示に失敗しました');}).finally(()=>{document.getElementById('dailyAdRetryBtn').disabled=false;});
+    }else{
+      // Preview only: no ad SDK in an ordinary browser.
+      d.retryUnlocked=true;persist();closeOverlay('resultOverlay');refreshHud();openOverlay('startOverlay');showToast('Webプレビュー：再挑戦権を解放しました');
+    }
+  }
+
+  function startTimeAttack(){
+    clearTimeHandles();clearTimeFeedback();
+    activeMode='time';gameActive=false;inputLocked=true;
+    timeScore=0;timeCombo=0;timeBestCombo=0;timeComboAwards=0;timeSessionEarned=0;timeWrong=0;
+    timeStarted=false;timeFinalizing=false;resultCommitted=false;
+    document.getElementById('dailyHud').hidden=true;
+    document.getElementById('timeHud').hidden=false;
+    document.getElementById('hud').hidden=true;
+    document.getElementById('toolbar').hidden=true;
+    document.getElementById('shopBtn').hidden=true;
+    document.getElementById('restartBtn').hidden=true;
+    document.getElementById('stageCaption').textContent='違う色をすばやく見つけよう';
+    document.getElementById('timeCountdown').hidden=false;
+    const begin=Date.now();
+    const countdown=()=>{
+      const delta=Date.now()-begin;
+      const count=3-Math.floor(delta/1000);
+      if(count>0){document.getElementById('timeCountdown').textContent=count;return;}
+      clearInterval(countdownId);countdownId=null;
+      document.getElementById('timeCountdown').textContent='GO!';
+      setTimeout(()=>{document.getElementById('timeCountdown').hidden=true;},250);
+      if(activeMode!=='time')return;
+      timeEndAt=Date.now()+TIME_LIMIT_MS;timeStarted=true;gameActive=true;inputLocked=false;
+      buildPuzzle();updateTimeHud();
+      timeTimerId=setInterval(()=>{
+        if(activeMode!=='time'||!timeStarted)return;
+        updateTimeHud();if(remainingMs()<=0) finishTimeAttack();
+      },50);
+    };
+    countdown();countdownId=setInterval(countdown,80);
+  }
+  function finishTimeAttack(){
+    if(timeFinalizing||activeMode!=='time'||!timeStarted)return;
+    timeFinalizing=true;gameActive=false;inputLocked=true;clearTimeHandles();clearTimeFeedback();
+    const oldBest=save.timeAttack.bestScore||0;
+    save.timeAttack.bestScore=Math.max(oldBest,timeScore);
+    save.timeAttack.totalGames=(save.timeAttack.totalGames||0)+1;
+    save.timeAttack.totalCorrect=(save.timeAttack.totalCorrect||0)+timeScore;
+    save.timeAttack.bestCombo=Math.max(save.timeAttack.bestCombo||0,timeBestCombo);
+    save.stats.totalGames=(save.stats.totalGames||0)+1;
+    save.points+=timeSessionEarned;
+    save.progress.totalXp=(save.progress.totalXp||0)+timeScore*5;
+    save.activeSession=null;
+    processProgression(true);persist();refreshHud();updateTimeHud();
+    document.querySelector('#resultOverlay .medal').textContent=timeScore>oldBest?'🏆':'⏱️';
+    document.getElementById('stageCaption2').textContent='TIME ATTACK · 正解数';
+    document.getElementById('resultStage').textContent=timeScore;
+    document.getElementById('resultBest').textContent=`ベスト: ${save.timeAttack.bestScore}問${timeScore>oldBest?' · NEW RECORD!':''}`;
+    document.getElementById('resultEarned').textContent=`+${timeSessionEarned}pt / +${timeScore*5}XP 獲得`;
+    document.getElementById('resultShopBtn').hidden=true;
+    document.getElementById('dailyAdRetryBtn').hidden=true;
+    document.getElementById('resultRetryBtn').textContent='もう一度';
+    openOverlay('resultOverlay');
+    renderResultCelebration(timeScore>oldBest);
+  }
+
 
   function refreshHud(){
     bestValEl.textContent = save.best;
     ptValEl.textContent = save.points;
+    document.getElementById('shopPoints').textContent=Number(save.points||0).toLocaleString('ja-JP');
     document.getElementById('startBest').textContent = save.best;
     document.getElementById('startPt').textContent = save.points;
     setupStagePicker();
+    refreshHomeProgress();
+    setModeUI(selectedMode);
+  }
+
+  function refreshHomeProgress(){
+    const xp = Math.max(0, Number(save.progress?.totalXp) || 0);
+    let rank=1, remaining=xp;
+    while(rank<10000 && remaining >= 100+25*(rank-1)){
+      remaining-=100+25*(rank-1); rank++;
+    }
+    const need=100+25*(rank-1);
+    document.getElementById('homeRank').textContent = `RANK ${rank}`;
+    document.getElementById('homeXpFill').style.width = `${Math.min(100,remaining/need*100)}%`;
+    document.getElementById('homeXpText').textContent = `${remaining} / ${need} XP`;
+    const chosen=progression.TITLES.find(t=>t.id===save.progress?.equippedTitle);
+    document.getElementById('homeTitle').textContent=chosen?.name||'色の見習い';
   }
 
   function setupStagePicker(){
@@ -468,11 +841,119 @@
   }
   document.getElementById('stagePickerRange').addEventListener('input', updateStagePickerLabel);
 
+  // PHASE 7.2: independently balanced sound effects and original ambient BGM.
+  // Audio is enabled by the first user gesture (iOS/WebKit autoplay restriction).
+  const feedbackKey='oddiro_feedback_v1';
+  let feedbackSettings={sound:true,bgm:true,haptics:true};
+  try {
+    const stored=JSON.parse(localStorage.getItem(feedbackKey)||'{}');
+    feedbackSettings.sound=stored.sound!==false;
+    feedbackSettings.bgm=stored.bgm!==false;
+    feedbackSettings.haptics=stored.haptics!==false;
+  } catch(_) {}
+  // PHASE 7.3: licensed CC0 music file replaces generated oscillator BGM.
+  // iOS: M4A/AAC is used instead of OGG for reliable Safari/WKWebView playback.
+  let feedbackAudio=null;
+  const bgmPlayer=new Audio('assets/audio/plimplom.m4a');
+  bgmPlayer.preload='auto';
+  bgmPlayer.loop=true;
+  bgmPlayer.volume=0.085; // Lower backing music so correct/wrong effects remain audible on iPhone.
+  function audioContext(){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return null;
+    if(!feedbackAudio) feedbackAudio=new AC();
+    if(feedbackAudio.state==='suspended') feedbackAudio.resume().catch(()=>{});
+    return feedbackAudio;
+  }
+  function stopBgm(){
+    bgmPlayer.pause();
+  }
+  function startBgm(){
+    if(!feedbackSettings.bgm||document.hidden)return;
+    if(!bgmPlayer.paused)return;
+    const attempt=bgmPlayer.play();
+    // If autoplay is blocked, the next explicit user interaction retries.
+    if(attempt&&typeof attempt.catch==='function')attempt.catch(()=>{});
+  }
+  function feedbackSound(kind){
+    if(!feedbackSettings.sound)return;
+    try{
+      const ctx=audioContext();if(!ctx)return;
+      const now=ctx.currentTime;
+      // Wrong: clearly audible lower, textured tone; correct: restrained and gentle.
+      const seq=kind==='wrong'?[[230,0,.19,'triangle',.235],[172,.055,.20,'triangle',.175]]:
+        kind==='bonus'?[[600,0,.08,'sine',.13],[790,.085,.11,'sine',.14]]:
+        kind==='record'?[[523,0,.08,'sine',.09],[659,.085,.10,'sine',.11],[784,.19,.17,'sine',.12]]:
+        kind==='rank'?[[523,0,.08,'sine',.09],[659,.09,.10,'sine',.11],[880,.20,.18,'sine',.12]]:
+        kind==='achievement'?[[660,0,.09,'sine',.10],[880,.10,.13,'sine',.11]]:
+        [[510,0,.075,'sine',.068],[690,.068,.08,'sine',.074]];
+      for(const [freq,delay,duration,wave,volume] of seq){
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.type=wave;osc.frequency.setValueAtTime(freq,now+delay);
+        gain.gain.setValueAtTime(.0001,now+delay);
+        gain.gain.exponentialRampToValueAtTime(volume,now+delay+.016);
+        gain.gain.exponentialRampToValueAtTime(.0001,now+delay+duration);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now+delay);osc.stop(now+delay+duration+.02);
+      }
+    }catch(_){}
+  }
+  // WebKit permits playback after user interaction; retry gently on subsequent gestures.
+  document.addEventListener('pointerdown',()=>{if(feedbackSettings.bgm)startBgm();});
+  document.addEventListener('keydown',()=>{if(feedbackSettings.bgm)startBgm();});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden)stopBgm();else if(feedbackSettings.bgm)startBgm();
+  });
+  window.addEventListener('pagehide',stopBgm);
+  window.addEventListener('pageshow',()=>{if(feedbackSettings.bgm)startBgm();});
+  function feedbackHaptic(kind){
+    if(!feedbackSettings.haptics)return;
+    try{
+      const h=window.Capacitor?.Plugins?.Haptics;
+      if(h){
+        const result=kind==='wrong'&&typeof h.notification==='function'
+          ?h.notification({type:'WARNING'})
+          :typeof h.impact==='function'?h.impact({style:kind==='bonus'?'Medium':'Light'}):null;
+        if(result?.catch)result.catch(()=>{});
+      }else if(typeof navigator.vibrate==='function')navigator.vibrate(kind==='wrong'?65:kind==='bonus'?35:15);
+    }catch(_){}
+  }
+  function feedback(kind){feedbackSound(kind);feedbackHaptic(kind);}
+  function bindFeedbackSettings(){
+    const sound=document.getElementById('odSoundToggle');
+    const bgm=document.getElementById('odBgmToggle');
+    const haptic=document.getElementById('odHapticToggle');
+    if(!sound||!bgm||!haptic)return;
+    sound.checked=feedbackSettings.sound;
+    bgm.checked=feedbackSettings.bgm;
+    haptic.checked=feedbackSettings.haptics;
+    bgm.addEventListener('change',()=>{
+      feedbackSettings.bgm=bgm.checked;
+      localStorage.setItem(feedbackKey,JSON.stringify(feedbackSettings));
+      if(bgm.checked)startBgm();else stopBgm();
+    });
+    sound.addEventListener('change',()=>{
+      feedbackSettings.sound=sound.checked;
+      localStorage.setItem(feedbackKey,JSON.stringify(feedbackSettings));
+      if(sound.checked)feedbackSound('correct');
+    });
+    haptic.addEventListener('change',()=>{
+      feedbackSettings.haptics=haptic.checked;
+      localStorage.setItem(feedbackKey,JSON.stringify(feedbackSettings));
+      if(haptic.checked)feedbackHaptic('correct');
+    });
+  }
+  bindFeedbackSettings();
+  function hideToast(){
+    clearTimeout(showToast._t);
+    toastEl.classList.remove('show');
+    toastEl.textContent = '';
+  }
   function showToast(msg){
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 1600);
+    showToast._t = setTimeout(hideToast, 1800);
   }
 
   /* ---------------- difficulty curve ---------------- */
@@ -495,14 +976,15 @@
   }
 
   function buildPuzzle(){
+    if(activeMode==='daily'){buildDailyPuzzle();return;}
     const hue = Math.floor(Math.random()*360);
     const sat = 45 + Math.floor(Math.random()*25); // 45-70
     const baseL = 38 + Math.floor(Math.random()*18); // 38-56
-    let baseDelta = diffForStage(stage);
+    let baseDelta = activeMode==='time'?timeDiffForScore(timeScore):diffForStage(stage);
     let delta = baseDelta + clarifyBoost;
     clarifyBoost = 0;
     const tier = tierForDiff(baseDelta);
-    document.getElementById('stageCaption').textContent = `${tier.emoji} ${tier.label}`;
+    document.getElementById('stageCaption').textContent = activeMode==='time'?'違う色をすばやく見つけよう':`${tier.emoji} ${tier.label}`;
     // randomize direction (lighter or darker) but keep within 8-92 range
     let dir = Math.random() < 0.5 ? -1 : 1;
     let oddL = baseL + dir*delta;
@@ -521,13 +1003,15 @@
       const L = isOdd ? oddL : baseL;
       t.style.background = `hsl(${hue} ${sat}% ${L}%)`;
       t.dataset.idx = i;
+      applyTileShape(t);
       t.addEventListener('click', onTileTap);
       gridEl.appendChild(t);
     }
   }
 
   function onTileTap(e){
-    if(!gameActive) return;
+    if(!gameActive || inputLocked) return;
+    if(activeMode==='time' && remainingMs()<=0){finishTimeAttack();return;}
     const idx = parseInt(e.currentTarget.dataset.idx,10);
     if(dimmedSet.has(idx)) return;
     if(idx === diffIndex){
@@ -538,37 +1022,107 @@
   }
 
   function handleCorrect(tileEl){
-    tileEl.classList.add('correct-pop');
+    if(inputLocked || !gameActive) return;
+    if(activeMode==='daily'){
+      feedback('correct');
+      inputLocked=true;tileEl.classList.add('correct-pop');cosmeticCorrectFeedback(tileEl);
+      dailyNumber+=1; save.activeSession={mode:'daily',date:dailyDate,retry:dailyRetry,question:dailyNumber};persist();
+      if(dailyNumber>=10){setTimeout(()=>finishDaily(),260);return;}
+      setTimeout(()=>{if(activeMode==='daily'&&gameActive){buildPuzzle();inputLocked=false;}},260);
+      return;
+    }
+    if(activeMode==='time'){
+      inputLocked=true;
+      if(remainingMs()<=0){finishTimeAttack();return;}
+      feedback(timeCombo%5===4?'bonus':'correct');
+      tileEl.classList.add('correct-pop');cosmeticCorrectFeedback(tileEl);
+      timeScore+=1;timeCombo+=1;
+      timeBestCombo=Math.max(timeBestCombo,timeCombo);
+      timeSessionEarned+=2;
+      save.stats.totalCorrect=(save.stats.totalCorrect||0)+1;
+      if(timeCombo%5===0){timeSessionEarned+=5;timeComboAwards+=1;showToast(`${timeCombo}コンボ達成！ +5pt`);}
+      updateTimeHud();
+      setTimeout(()=>{
+        if(!gameActive||activeMode!=='time')return;
+        if(remainingMs()<=0){finishTimeAttack();return;}
+        buildPuzzle();inputLocked=false;
+      },170);
+      return;
+    }
+    inputLocked = true;
+    feedback(sessionCorrect%5===4?'bonus':'correct');
+    tileEl.classList.add('correct-pop');cosmeticCorrectFeedback(tileEl);
     burstParticles(tileEl);
+    const completedStage = stage;
     stage += 1;
-    // trickle points
+    sessionCorrect += 1;
+    save.stats.totalCorrect += 1;
+    save.stats.classicCorrect += 1;
+    save.progress.totalXp=(save.progress.totalXp||0)+10;
     save.points += 2;
     sessionEarned += 2;
-    if(stage % 5 === 0){
+    if(sessionCorrect % 5 === 0){
       save.points += 10;
       sessionEarned += 10;
-      showToast(`🎉 ステージ${stage-1}クリア！ +10pt ボーナス`);
+      showToast(`🎉 ${sessionCorrect}問クリア！ +10pt ボーナス`);
     }
+    if(stage > save.best) save.best = stage;
+    processProgression(false);
     persist();
     refreshHud();
     renderToolbar();
     setTimeout(()=>{
+      if(!gameActive) return;
       stageNumEl.textContent = stage;
       buildPuzzle();
+      inputLocked = false;
     }, 260);
   }
 
   function handleWrong(tileEl){
+    if(inputLocked || !gameActive) return;
+    if(activeMode==='daily'){
+      feedback('wrong');
+      inputLocked=true;tileEl.classList.add('wrong-shake');
+      setTimeout(()=>finishDaily(),380);return;
+    }
+    if(activeMode==='time'){
+      inputLocked=true;
+      feedback('wrong');
+      tileEl.classList.add('wrong-shake');
+      timeWrong+=1;timeCombo=0;
+      clearTimeout(showToast._t);toastEl.classList.remove('show');
+      showTimePenalty();
+      save.stats.totalWrong=(save.stats.totalWrong||0)+1;
+      timeEndAt-=TIME_PENALTY_MS;
+      updateTimeHud();
+      if(remainingMs()<=0){finishTimeAttack();return;}
+      setTimeout(()=>{
+        if(!gameActive||activeMode!=='time')return;
+        if(remainingMs()<=0){finishTimeAttack();return;}
+        tileEl.classList.remove('wrong-shake');inputLocked=false;
+      },180);
+      return;
+    }
+    inputLocked = true;
+    feedback('wrong');
+    save.stats.totalWrong += 1;
     tileEl.classList.add('wrong-shake');
-    navigator.vibrate && navigator.vibrate(60);
+    // Haptics handled by feedback('wrong') to respect the toggle.
     if(save.inv.retry > 0){
       save.inv.retry -= 1;
       persist();
       renderToolbar();
       showToast('💗 やり直しチケットを使用！ もう一度このステージから');
-      setTimeout(()=>{ tileEl.classList.remove('wrong-shake'); buildPuzzle(); }, 420);
+      setTimeout(()=>{
+        if(!gameActive) return;
+        tileEl.classList.remove('wrong-shake');
+        buildPuzzle();
+        inputLocked = false;
+      }, 420);
       return;
     }
+    persist();
     setTimeout(()=> endGame(), 420);
   }
 
@@ -597,19 +1151,26 @@
   }
 
   function endGame(){
+    if(resultCommitted) return;
+    resultCommitted = true;
     gameActive = false;
+    inputLocked = true;
     const finalStage = stage;
-    const bonus = Math.floor(finalStage * 1.5);
+    const bonus = Math.floor(sessionCorrect * 1.5);
     save.points += bonus;
     sessionEarned += bonus;
     if(finalStage > save.best){ save.best = finalStage; }
-    persist();
-    refreshHud();
+    save.stats.totalGames += 1;
+    save.activeSession = null;
+    processProgression(true);persist();refreshHud();
 
+    document.getElementById('dailyAdRetryBtn').hidden=true;
+    document.getElementById('resultRetryBtn').textContent='もう一度';
     document.getElementById('resultStage').textContent = finalStage;
     document.getElementById('resultBest').textContent = `ベスト: ${save.best}`;
     document.getElementById('resultEarned').textContent = `+${sessionEarned}pt 獲得`;
     openOverlay('resultOverlay');
+    renderResultCelebration(finalStage>classicBestAtStart);
   }
 
   /* ---------------- item use during play ---------------- */
@@ -680,6 +1241,127 @@
     }
   }
 
+
+  /* ---------- PHASE 5: cosmetic inventory, previews and equip ---------- */
+  const COSMETIC_CATALOG = {
+    tile: [
+      {id:'square',name:'スクエア',price:0,icon:'▦',desc:'すっきりした角形タイル'},
+      {id:'rounded',name:'ラウンド',price:150,icon:'▢',desc:'柔らかな角丸タイル'},
+      {id:'circle',name:'サークル',price:300,icon:'●',desc:'丸いタイル'},
+      {id:'cut',name:'カット',price:500,icon:'⬡',desc:'角を落とした八角形タイル'}
+    ],
+    theme: [
+      {id:'dark',name:'ダーク',price:0,icon:'🌙',desc:'標準のモダン・ダーク'},
+      {id:'light',name:'ライト',price:0,icon:'☀️',desc:'明るい背景（無料）'},
+      {id:'midnight',name:'ミッドナイト',price:400,icon:'🌌',desc:'深い青のナイトテーマ'},
+      {id:'mono',name:'モノクロ',price:500,icon:'◑',desc:'無彩色のシンプルな背景'},
+      {id:'rainbow_luxe',name:'レインボー・リュクス',price:1200,icon:'🌈',desc:'虹色の光と上品な輝きの特別テーマ（問題の色はそのまま）'}
+    ],
+    effect: [
+      {id:'default',name:'スタンダード',price:0,icon:'✦',desc:'標準の正解アニメーション'},
+      {id:'star',name:'スター',price:300,icon:'⭐',desc:'星のきらめき'},
+      {id:'neon',name:'ネオン',price:500,icon:'⚡',desc:'光のリング'},
+      {id:'rainbow',name:'レインボー',price:800,icon:'🌈',desc:'虹色のパーティクル'}
+    ]
+  };
+  const COSMETIC_KEYS={tile:['unlockedTiles','equippedTile'],theme:['unlockedThemes','equippedTheme'],effect:['unlockedEffects','equippedEffect']};
+  function ensureCosmetics(){
+    const c=save.cosmetics||(save.cosmetics={});
+    for(const [kind,[unlocked,equipped]] of Object.entries(COSMETIC_KEYS)){
+      const first=COSMETIC_CATALOG[kind][0].id;
+      if(!Array.isArray(c[unlocked]))c[unlocked]=[first];
+      c[unlocked]=[...new Set(c[unlocked].filter(id=>COSMETIC_CATALOG[kind].some(x=>x.id===id)))];
+      if(!c[unlocked].includes(first))c[unlocked].unshift(first);
+      if(kind==='theme' && !c[unlocked].includes('light'))c[unlocked].push('light');
+      if(!c[unlocked].includes(c[equipped]))c[equipped]=first;
+    }
+    return c;
+  }
+  function applyCosmetics(){
+    const c=ensureCosmetics();
+    document.documentElement.dataset.oddiroTile=c.equippedTile;
+    document.documentElement.dataset.oddiroTheme=c.equippedTheme;
+    document.documentElement.dataset.oddiroEffect=c.equippedEffect;
+    document.documentElement.style.setProperty('--oddiro-tile-radius',({square:'2px',rounded:'10px',circle:'50%',cut:'4px'}[c.equippedTile]||'2px'));
+    document.documentElement.style.setProperty('--oddiro-tile-clip',c.equippedTile==='cut'?'polygon(20% 0,80% 0,100% 20%,100% 80%,80% 100%,20% 100%,0 80%,0 20%)':'none');
+    // Apply directly as well: makes the selected geometry reliable across cached CSS and dynamically created tiles.
+    document.querySelectorAll('#grid .tile').forEach(applyTileShape);
+  }
+  function applyTileShape(tile){
+    const id=ensureCosmetics().equippedTile;
+    const radius={square:'2px',rounded:'10px',circle:'50%',cut:'4px'}[id]||'2px';
+    tile.dataset.shape=id;
+    tile.style.setProperty('border-radius',radius,'important');
+    tile.style.setProperty('clip-path', id==='cut'?'polygon(20% 0,80% 0,100% 20%,100% 80%,80% 100%,20% 100%,0 80%,0 20%)':'none','important');
+  }
+  // Ensure all regenerated puzzles use the purchased appearance in every game mode.
+  const cosmeticGridObserver=new MutationObserver(records=>{
+    for(const record of records){
+      for(const node of record.addedNodes){
+        if(node.nodeType===1&&node.classList.contains('tile'))applyTileShape(node);
+      }
+    }
+  });
+  cosmeticGridObserver.observe(gridEl,{childList:true});
+  function cosmeticPreviewTile(id){
+    const shapes={square:'2px',rounded:'10px',circle:'50%',cut:'4px'};
+    return `<div class="cosmetic-tile-preview">${[0,1,2,3,4].map((_,i)=>`<span style="background:${i===2?'#74c8ce':'#239ca5'};border-radius:${shapes[id]};${id==='cut'?'clip-path:polygon(20% 0,80% 0,100% 20%,100% 80%,80% 100%,20% 100%,0 80%,0 20%);':''}"></span>`).join('')}</div>`;
+  }
+  function renderCosmeticShop(){
+    const c=ensureCosmetics(),list=document.getElementById('cosmeticList');
+    list.replaceChildren();
+    for(const [kind,heading] of [['tile','タイルの形'],['theme','背景テーマ'],['effect','正解エフェクト']]){
+      const title=document.createElement('h3');title.className='cosmetic-heading';title.textContent=heading;list.appendChild(title);
+      for(const item of COSMETIC_CATALOG[kind]){
+        const [ownedKey,equippedKey]=COSMETIC_KEYS[kind];
+        const owned=c[ownedKey].includes(item.id),equipped=c[equippedKey]===item.id;
+        const card=document.createElement('div');card.className='cosmetic-card';
+        const preview=document.createElement('div');preview.className='cosmetic-preview';
+        if(kind==='tile')preview.innerHTML=cosmeticPreviewTile(item.id);
+        else if(kind==='theme'){
+          const colors={dark:['#111827','#1f2937'],light:['#F5F6FA','#fff'],midnight:['#0C1930','#1C3152'],mono:['#262626','#454545'],rainbow_luxe:['#161a35','#6652c1']};
+          const [bg,fg]=colors[item.id];preview.innerHTML=`<div class="theme-mini ${item.id==='rainbow_luxe'?'rainbow-luxe-preview':''}" style="background:${bg}"><span style="background:${fg}"></span><span style="background:${fg}"></span><span style="background:#239ca5"></span></div>`;
+        }else{preview.textContent=item.icon;}
+        card.appendChild(preview);
+        const info=document.createElement('div');info.className='cosmetic-description';
+        const name=document.createElement('strong');name.textContent=item.name;
+        const desc=document.createElement('small');desc.textContent=item.desc;
+        info.append(name,desc);card.appendChild(info);
+        const btn=document.createElement('button');btn.type='button';btn.className='cosmetic-action';
+        btn.textContent=equipped?'装備中':owned?'装備':`${item.price}pt`;
+        btn.disabled=equipped;
+        btn.addEventListener('click',()=>{
+          if(!owned){
+            if(save.points<item.price){showToast('ポイントが足りません');return;}
+            if(!confirm(`${item.name} を ${item.price}pt で購入しますか？`))return;
+            if(c[ownedKey].includes(item.id))return;
+            save.points-=item.price;c[ownedKey].push(item.id);
+          }
+          c[equippedKey]=item.id;
+          persist();applyCosmetics();refreshHud();renderCosmeticShop();
+          showToast(`${item.name} を装備しました`);
+        });
+        card.appendChild(btn);list.appendChild(card);
+      }
+    }
+  }
+  function selectShopTab(tab){
+    for(const btn of document.querySelectorAll('.cosmetic-tab')){
+      const selected=btn.dataset.tab===tab;btn.classList.toggle('selected',selected);btn.setAttribute('aria-selected',String(selected));
+    }
+    for(const [id,value] of [['shopItemsSection','items'],['shopCosmeticsSection','cosmetics'],['shopCheckpointsSection','checkpoints']])document.getElementById(id).hidden=(tab!==value);
+    if(tab==='cosmetics')renderCosmeticShop();
+  }
+  for(const btn of document.querySelectorAll('.cosmetic-tab'))btn.addEventListener('click',()=>selectShopTab(btn.dataset.tab));
+  ensureCosmetics();applyCosmetics();
+  function cosmeticCorrectFeedback(tile){
+    const effect=ensureCosmetics().equippedEffect;
+    if(effect==='default'||save.settings?.reducedMotion)return;
+    const marker=document.createElement('span');marker.className='cosmetic-fx cosmetic-fx-'+effect;
+    marker.textContent=effect==='star'?'✦':effect==='rainbow'?'✳':'';
+    tile.appendChild(marker);setTimeout(()=>marker.remove(),650);
+  }
+
   /* ---------------- shop ---------------- */
   function renderShop(){
     const list = document.getElementById('shopList');
@@ -703,6 +1385,8 @@
       list.appendChild(row);
     });
     renderCheckpoints();
+    renderCosmeticShop();
+    document.getElementById('shopPoints').textContent=Number(save.points||0).toLocaleString('ja-JP');
   }
 
   function renderCheckpoints(){
@@ -821,6 +1505,14 @@
     AdMob.addListener('onRewardedVideoAdLoaded', ()=>{ rewardedLoaded = true; });
     AdMob.addListener('onRewardedVideoAdFailedToLoad', ()=>{ rewardedLoaded = false; });
     AdMob.addListener('onRewardedVideoAdReward', ()=>{
+      if(!rewardedPending)return;
+      rewardedPending=false;
+      if(rewardedPurpose==='daily_retry'){
+        const d=dailyToday();if(d.first!==null&&!d.retryStarted&&!d.retryFinished){d.retryUnlocked=true;persist();closeOverlay('resultOverlay');refreshHud();openOverlay('startOverlay');showToast('再挑戦権を獲得しました');}
+        rewardedPurpose=null;return;
+      }
+      if(rewardedPurpose!=='points')return;
+      rewardedPurpose=null;
       save.points += 25;
       persist();
       refreshHud();
@@ -828,7 +1520,7 @@
       showToast('📺 +25pt 獲得！');
     });
     AdMob.addListener('onRewardedVideoAdDismissed', ()=>{
-      rewardedLoaded = false;
+      rewardedLoaded = false;rewardedPending=false;rewardedPurpose=null;
       prepareRewarded(); // preload the next one
     });
   }
@@ -875,9 +1567,9 @@
         prepareRewarded();
         return;
       }
-      btn.disabled = true;
+      btn.disabled = true;rewardedPurpose='points';rewardedPending=true;
       admob().showRewardVideoAd()
-        .catch(()=>{ showToast('広告の表示に失敗しました'); })
+        .catch(()=>{rewardedPurpose=null;rewardedPending=false; showToast('広告の表示に失敗しました'); })
         .finally(()=>{ btn.disabled = false; });
       return;
     }
@@ -897,20 +1589,48 @@
 
   /* ---------------- overlays ---------------- */
   function openOverlay(id){
+    hideToast();
     document.getElementById(id).classList.add('show');
   }
   function closeOverlay(id){
+    hideToast();
     document.getElementById(id).classList.remove('show');
+    if(id==='resultOverlay')clearResultCelebration();
   }
 
-  document.getElementById('shopBtn').addEventListener('click', ()=>{ renderShop(); openOverlay('shopOverlay'); });
+  document.getElementById('homeProfileBtn').addEventListener('click',showProfile);
+  document.getElementById('profileBack').addEventListener('click',()=>closeOverlay('profileOverlay'));
+  document.querySelectorAll('[data-progtab]').forEach(b=>b.addEventListener('click',()=>{profileTab=b.dataset.progtab;showProfile();}));
+  document.getElementById('homeShopBtn').addEventListener('click', ()=>{ renderShop();openOverlay('shopOverlay'); });
+  document.getElementById('shopBtn').addEventListener('click', ()=>{ if(activeMode==='time'||activeMode==='daily')return;renderShop();openOverlay('shopOverlay'); });
   document.getElementById('resultShopBtn').addEventListener('click', ()=>{ renderShop(); openOverlay('shopOverlay'); });
   document.getElementById('shopOverlay').addEventListener('click', (e)=>{ if(e.target.id==='shopOverlay') closeOverlay('shopOverlay'); });
 
   function goHome(){
+    if(activeMode==='daily'){
+      gameActive=false;inputLocked=true;activeMode='classic';restoreClassicHud();persist();
+    }
+    if(activeMode==='time'){
+      if(timeStarted||countdownId!==null){
+        if(!confirm('タイムアタックを中断しますか？ 今回の報酬と記録は保存されません。')) return;
+      }
+      clearTimeHandles();clearTimeFeedback();timeStarted=false;timeFinalizing=true;gameActive=false;inputLocked=true;
+      activeMode='classic';
+      document.getElementById('timeHud').hidden=true;
+      document.getElementById('hud').hidden=false;
+      document.getElementById('toolbar').hidden=false;
+      document.getElementById('shopBtn').hidden=false;
+      document.getElementById('restartBtn').hidden=false;
+      save.activeSession=null;
+      persist();
+    }
     if(gameActive){
       if(stage > save.best){ save.best = stage; persist(); }
       gameActive = false;
+      inputLocked = true;
+      save.activeSession = null;
+      save.stats.totalGames += 1;
+      persist();
     }
     closeOverlay('shopOverlay');
     closeOverlay('resultOverlay');
@@ -918,15 +1638,34 @@
     openOverlay('startOverlay');
   }
   document.getElementById('homeBtn').addEventListener('click', goHome);
-  document.getElementById('shopHomeBtn').addEventListener('click', goHome);
+  document.getElementById('shopHomeBtn').addEventListener('click', ()=>{ hideToast(); closeOverlay('shopOverlay'); });
 
-  document.getElementById('restartBtn').addEventListener('click', ()=>{ refreshHud(); openOverlay('startOverlay'); });
-  document.getElementById('resultRetryBtn').addEventListener('click', ()=>{ closeOverlay('resultOverlay'); refreshHud(); openOverlay('startOverlay'); });
-  document.getElementById('startBtn').addEventListener('click', ()=>{ closeOverlay('startOverlay'); startGame(selectedStartStage); });
+  document.getElementById('restartBtn').addEventListener('click', ()=>{ if(gameActive){goHome();return;} refreshHud();openOverlay('startOverlay'); });
+  document.getElementById('resultRetryBtn').addEventListener('click', ()=>{ closeOverlay('resultOverlay');refreshHud();openOverlay('startOverlay'); });
+  document.getElementById('dailyAdRetryBtn').addEventListener('click', ()=>requestDailyAd());
+  document.getElementById('startBtn').addEventListener('click', ()=>{ hideToast(); closeOverlay('startOverlay'); if(selectedMode==='time')startTimeAttack();else if(selectedMode==='daily')startDaily();else startGame(selectedStartStage); });
 
   function startGame(fromStage){
+    clearTimeHandles();clearTimeFeedback();activeMode='classic';
+    document.getElementById('dailyHud').hidden=true;
+    document.getElementById('dailyAdRetryBtn').hidden=true;
+    document.getElementById('timeHud').hidden=true;
+    document.getElementById('hud').hidden=false;
+    document.getElementById('toolbar').hidden=false;
+    document.getElementById('shopBtn').hidden=false;
+    document.getElementById('restartBtn').hidden=false;
+    document.querySelector('#resultOverlay .medal').textContent='😵';
+    document.getElementById('stageCaption2').textContent='STAGE';
+    document.getElementById('resultShopBtn').hidden=false;
     stage = fromStage && fromStage >= 1 ? fromStage : 1;
+    classicBestAtStart=save.best||0;
     sessionEarned = 0;
+    pendingProgressNews=[];
+    sessionStartStage = stage;
+    sessionCorrect = 0;
+    sessionId = 'classic-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    resultCommitted = false;
+    inputLocked = false;
     clarifyBoost = 0;
     gameActive = true;
     stageNumEl.textContent = stage;
@@ -937,6 +1676,7 @@
   }
 
   /* ---------------- init ---------------- */
+  processProgression(false);
   refreshHud();
   renderToolbar();
   buildPuzzle();

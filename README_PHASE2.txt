@@ -1,0 +1,1 @@
+Apply over the previously tested PHASE 1 installation. Replace www/index.html and www/sw.js, add www/css/phase2-ui.css. KEEP www/js/phase1-storage.js. The new home and dark presentation are active, while Time Attack/Daily intentionally show 準備中. No changes to iOS signing.

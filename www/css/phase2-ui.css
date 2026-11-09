@@ -1,0 +1,682 @@
+/* ODDIRO Ver.2.0 PHASE 2 — visual foundation; no new modes yet. */
+:root{--bg-0:#111827;--bg-1:#1b2535;--bg-2:#27354a;--ink-0:#f8fafc;--ink-1:#cbd5e1;--ink-2:#94a3b8;--radius-lg:20px;--radius-md:16px;--radius-sm:12px}
+html,body{background:#111827}
+#app{background:radial-gradient(90% 65% at 50% 0%,#202e4c 0%,#111827 78%)}
+.nav-btn.primary{background:#6366f1;color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.23)}
+.nav-btn.secondary{border:1px solid #35445c;background:#223047}
+.pt-pill{border:1px solid #35445c}
+.pt-pill .coin{background:#fbbf24}
+#stageNum{font-size:clamp(36px,10vw,54px)}
+#stage{padding:6px 12px;min-height:0}
+#grid{gap:clamp(4px,1.3vw,8px);max-width:min(440px,100%);max-height:100%}
+.tile{border-radius:10px;box-shadow:0 2px 0 rgba(0,0,0,.16)}
+#bottomNav{gap:7px}
+.overlay{background:rgba(6,12,24,.78)}
+.sheet{background:#1b2535;border:1px solid #334155;border-bottom:0}
+#resultOverlay .sheet{border-radius:24px 24px 0 0}
+#resultOverlay .medal{background:linear-gradient(145deg,#6476b9,#818cf8)}
+#resultEarned{color:#34d399}
+/* Full-screen home with scroll area above banner. */
+#startOverlay{align-items:stretch;justify-content:center;backdrop-filter:none;background:#111827}
+#startOverlay .home-sheet{max-width:520px;max-height:none;height:100%;width:100%;padding:calc(var(--safe-top) + 8px) 20px calc(var(--safe-bottom) + var(--banner-h) + 18px);border:0;border-radius:0;overflow-y:auto;transform:none;opacity:1;text-align:left;background:radial-gradient(95% 45% at 35% 0%,#202e4c 0%,#111827 85%)}
+#startOverlay.show .home-sheet{transform:none}
+.home-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:23px}
+.home-overline{font-size:9px;letter-spacing:.21em;color:#94a3b8;font-weight:700}
+#startOverlay .home-top h1{font:900 33px/1.1 'Zen Maru Gothic',sans-serif;letter-spacing:.04em;color:#fff;margin:5px 0 6px}
+.home-dot{color:#818cf8}
+.home-subtitle{font-size:11px;color:#b7c6d9}
+.home-balance{display:flex;align-items:center;gap:6px;white-space:nowrap;background:#28354c;border:1px solid #394861;border-radius:24px;padding:8px 12px;font-size:14px}
+.home-balance span{color:#fbbf24}.home-balance small{font-size:10px;color:#94a3b8}
+.home-profile{display:flex;align-items:center;gap:12px;background:#202d46;border:1px solid #344665;border-radius:18px;padding:14px;margin-bottom:25px}
+.profile-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#34496f;color:#c7d2fe;font-size:25px;flex-shrink:0}
+.profile-main{flex:1;min-width:0}.profile-topline{color:#a5b4fc;font-size:10px;font-weight:700;letter-spacing:.07em}.profile-title{font-weight:800;font-size:14px;margin:2px 0 9px}.home-xp-track{height:5px;border-radius:9px;background:#394a66;overflow:hidden}.home-xp-track div{background:#818cf8;height:100%;width:0}.profile-xp{color:#a9b8d0;font-size:9px;margin-top:4px}
+.home-best{text-align:center;min-width:50px}.home-best b{display:block;font-size:22px;color:#fff}.home-best small{font-size:9px;letter-spacing:.1em;color:#a9b8d0}
+.home-section-label{display:flex;align-items:baseline;justify-content:space-between;font-size:15px;font-weight:800;margin-bottom:12px}.home-section-label span{font-size:9px;color:#8092b1;letter-spacing:.15em}
+.home-modes{display:grid;gap:10px;margin-bottom:14px}
+.mode-card{display:flex;align-items:center;gap:12px;padding:13px;border-radius:16px;background:#1d293b;border:1px solid #334155;min-height:74px}
+.mode-current{background:#2b3c64;border:2px solid #818cf8;padding:12px}.mode-upcoming{opacity:.69}
+.mode-symbol{width:43px;height:43px;flex-shrink:0;border-radius:13px;display:grid;place-items:center;background:#334360;font-size:24px;color:#c7d2fe}
+.mode-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}.mode-copy strong{font-size:14px}.mode-copy small{font-size:10px;color:#bac8df}
+.mode-mark{font-size:10px;color:#c7d2fe;white-space:nowrap}.mode-upcoming .mode-mark{color:#9ca8bd}
+.home-stage-picker{margin:12px 0;padding:13px;background:#1e293b;border-radius:12px}.picker-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:12px;color:#cbd5e1}.picker-row strong{color:#fff;font-size:19px}.home-stage-picker input{width:100%;accent-color:#818cf8}.picker-hint{text-align:right;font-size:10px;color:#a5b4fc}
+.home-play{width:100%;padding:15px!important;min-height:52px;display:flex;justify-content:center;gap:12px;align-items:center;font-size:15px}.home-footnote{font-size:10px;line-height:1.5;color:#94a3b8;text-align:center;margin-top:16px}
+@media(max-height:680px){#startOverlay .home-sheet{padding-top:calc(var(--safe-top) + 2px)}.home-top{margin-bottom:12px}.home-profile{margin-bottom:13px}.mode-card{min-height:63px;padding:9px}.mode-current{padding:8px}}
+@media(prefers-reduced-motion:reduce){.tile,.sheet,.overlay{animation:none!important;transition:none!important}}
+
+/* Phase 3: time attack */
+#timeHud[hidden],#timeCountdown[hidden],#hud[hidden],#toolbar[hidden],#shopBtn[hidden],#restartBtn[hidden],#resultShopBtn[hidden]{display:none!important}
+#timeHud{width:100%;padding:2px 10px 8px;box-sizing:border-box;color:#f8fafc}
+.time-header{display:flex;align-items:baseline;justify-content:center;gap:8px;font-weight:700;font-size:12px;letter-spacing:.08em;color:#a5b4fc}
+.time-header strong{font-size:38px;font-variant-numeric:tabular-nums;color:#f8fafc;letter-spacing:0}
+.time-meter{height:9px;border-radius:12px;background:#334155;overflow:hidden;margin:7px 0 9px}
+#timeMeterFill{width:100%;height:100%;background:#818cf8;transition:width .06s linear}
+.time-scores{display:flex;justify-content:space-between;font-size:12px;color:#cbd5e1}
+.time-scores b{font-size:16px;color:#f8fafc}
+#timeCountdown{position:absolute;z-index:20;top:42%;left:50%;transform:translate(-50%,-50%);font-size:74px;font-weight:900;color:#fff;text-shadow:0 3px 25px #111827}
+.mode-card[role=button]{cursor:pointer}
+.mode-card[role=button]:focus-visible{outline:3px solid #a5b4fc;outline-offset:3px}
+
+/* Phase 3.1: clearly visible live score and miss feedback */
+#timeHud{position:relative;flex-shrink:0;overflow:visible;z-index:2}
+.time-scores{align-items:center;gap:8px;margin-top:4px}
+.time-scores>span{white-space:nowrap}
+.time-scores .time-score-primary{display:flex;align-items:baseline;gap:5px;background:#2a3960;border:1px solid #818cf8;border-radius:12px;padding:6px 11px;font-size:12px;font-weight:800;color:#c7d2fe}
+.time-score-primary #timeScore{font-size:26px;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.time-score-primary small{font-size:11px;color:#c7d2fe}
+.time-penalty[hidden]{display:none!important}
+.time-penalty{position:absolute;right:12px;top:100%;margin-top:3px;z-index:30;pointer-events:none;background:#7f1d1d;color:#fff;font-size:16px;font-weight:900;padding:8px 15px;border:1px solid #f87171;border-radius:14px;box-shadow:0 8px 22px #0008;opacity:0;transform:translateY(-8px)}
+.time-penalty.visible{animation:time-penalty-pop .95s ease-out forwards}
+@keyframes time-penalty-pop{0%{opacity:0;transform:translateY(-8px) scale(.92)}15%,73%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-8px)}}
+@media(max-width:355px){.time-scores .time-score-primary{padding:5px 7px}.time-scores{font-size:10px}.time-scores b{font-size:14px}.time-score-primary #timeScore{font-size:23px}}
+@media(prefers-reduced-motion:reduce){.time-penalty.visible{animation:none;opacity:1;transform:none}}
+
+/* Phase 4: daily challenge */
+#dailyHud[hidden],#dailyAdRetryBtn[hidden]{display:none!important}
+#dailyHud{padding:12px 18px 4px;color:#e2e8f0;text-align:center}
+.daily-header{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.04em}
+.daily-header strong{font-size:24px;font-weight:900;color:#fff}
+.daily-progress{display:flex;gap:4px;margin:12px 0 6px}
+.daily-progress span{height:7px;border-radius:10px;background:#334155;flex:1}
+.daily-progress span.complete{background:#34d399}
+#dailyHud p{font-size:11px;color:#94a3b8;margin:4px 0 2px}
+#dailyAdRetryBtn{flex-basis:100%!important}
+.result-actions{flex-wrap:wrap}
+
+/* PHASE 5 cosmetics: apply to all three game modes */
+html[data-oddiro-tile="square"] .tile{border-radius:2px}
+html[data-oddiro-tile="rounded"] .tile{border-radius:10px}
+html[data-oddiro-tile="circle"] .tile{border-radius:50%}
+html[data-oddiro-tile="cut"] .tile{border-radius:4px;clip-path:polygon(20% 0,80% 0,100% 20%,100% 80%,80% 100%,20% 100%,0 80%,0 20%)}
+html[data-oddiro-theme="light"]{--bg:#F5F6FA;--bg-2:#FFFFFF;--ink-0:#1F2937;--ink-1:#374151;--ink-2:#6B7280}
+html[data-oddiro-theme="midnight"]{--bg:#0C1930;--bg-2:#1C3152}
+html[data-oddiro-theme="mono"]{--bg:#262626;--bg-2:#454545}
+html[data-oddiro-theme="light"] #app{background:#F5F6FA!important}
+html[data-oddiro-theme="midnight"] #app{background:#0C1930!important}
+html[data-oddiro-theme="mono"] #app{background:#262626!important}
+html[data-oddiro-theme="light"] #startOverlay{background:#F5F6FA}
+html[data-oddiro-theme="light"] #startOverlay .home-sheet{background:linear-gradient(165deg,#E8EDFF,#F5F6FA 55%)}
+html[data-oddiro-theme="midnight"] #startOverlay,html[data-oddiro-theme="midnight"] #startOverlay .home-sheet{background:#0C1930}
+html[data-oddiro-theme="mono"] #startOverlay,html[data-oddiro-theme="mono"] #startOverlay .home-sheet{background:#262626}
+.cosmetic-tabs{display:flex;gap:5px;margin:14px 0 12px}
+.cosmetic-tab{flex:1;min-width:0;border:1px solid #39465e;border-radius:10px;padding:11px 3px;background:#263147;color:#e5e7eb;font-size:12px;font-weight:700}
+.cosmetic-tab.selected{background:#6366f1;border-color:#818cf8;color:white}
+.shop-section[hidden]{display:none!important}
+.cosmetic-info{font-size:12px;color:var(--ink-2);line-height:1.6}
+.cosmetic-heading{margin:20px 0 8px;font-size:15px;color:var(--ink-0)}
+.cosmetic-card{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px;border-radius:12px;background:rgba(130,145,180,.12);border:1px solid rgba(130,145,180,.13)}
+.cosmetic-preview{width:64px;min-width:64px;height:51px;display:flex;align-items:center;justify-content:center;font-size:27px;overflow:hidden}
+.cosmetic-tile-preview{display:flex;gap:2px;width:63px}
+.cosmetic-tile-preview span{height:13px;flex:1}
+.theme-mini{width:62px;height:40px;border-radius:8px;padding:7px;display:flex;gap:3px;align-items:end}
+.theme-mini span{flex:1;height:12px;border-radius:3px}.theme-mini span:first-child{height:22px}
+.cosmetic-description{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.cosmetic-description strong{font-size:13px}.cosmetic-description small{font-size:10.5px;color:var(--ink-2);line-height:1.4}
+.cosmetic-action{min-width:64px;border:0;border-radius:9px;background:#6366f1;color:#fff;padding:10px 5px;font-size:12px;font-weight:700}
+.cosmetic-action:disabled{background:#344256;color:#a3b5d0}
+.tile{overflow:visible}.cosmetic-fx{position:absolute;z-index:3;inset:0;display:grid;place-items:center;pointer-events:none;font-size:40px;font-weight:bold;animation:cosmetic-flash .55s ease-out forwards;color:#ffdf69;text-shadow:0 0 12px currentColor}
+.cosmetic-fx-neon{border:3px solid #8bdffd;border-radius:inherit;box-shadow:0 0 18px #72c9ff;animation:cosmetic-ring .55s ease-out forwards}
+.cosmetic-fx-rainbow{background:conic-gradient(#f86,#ff8,#6f9,#6cf,#a7f,#f8a,#f86);background-clip:text;-webkit-background-clip:text;color:transparent}
+@keyframes cosmetic-flash{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.6);opacity:0}}
+@keyframes cosmetic-ring{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.5);opacity:0}}
+@media(prefers-reduced-motion:reduce){.cosmetic-fx{animation:none;display:none}}
+/* Light theme readability across hard-coded Phase 2 home colors */
+html[data-oddiro-theme="light"] #startOverlay .home-top h1,
+html[data-oddiro-theme="light"] #startOverlay .home-profile .profile-title,
+html[data-oddiro-theme="light"] #startOverlay .mode-card .mode-title{color:#1e293b!important}
+html[data-oddiro-theme="light"] #startOverlay .home-profile,
+html[data-oddiro-theme="light"] #startOverlay .mode-card,
+html[data-oddiro-theme="light"] #startOverlay .home-stage-picker{background:#fff;border-color:#d7deeb;color:#1e293b}
+html[data-oddiro-theme="light"] #startOverlay .home-balance{background:#fff;color:#1e293b;border-color:#d7deeb}
+html[data-oddiro-theme="light"] #startOverlay .mode-current{background:#e9ecff;border-color:#6366f1}
+html[data-oddiro-theme="light"] #startOverlay .mode-card .mode-desc,
+html[data-oddiro-theme="light"] #startOverlay .picker-row{color:#475569}
+html[data-oddiro-theme="light"] #startOverlay .profile-xp{color:#526482}
+html[data-oddiro-theme="light"] .sheet{background:#fff;color:#1f2937;border-color:#d7deeb}
+html[data-oddiro-theme="light"] .cosmetic-card{background:#f1f5f9}
+
+/* PHASE 5.2: standalone, full-screen shop */
+#shopOverlay{position:absolute;inset:0;z-index:80;display:flex;align-items:stretch;justify-content:center;background:#111827;backdrop-filter:none;transition:opacity .18s ease}
+#shopOverlay .sheet{width:100%;height:100%;max-width:520px;max-height:none;border:0;border-radius:0;transform:none!important;transition:none;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:calc(var(--safe-top) + 6px) 20px calc(var(--safe-bottom) + var(--banner-h) + 24px);background:#111827}
+#shopOverlay .sheet-handle{display:none}
+#shopOverlay h2{font-size:26px;line-height:1.3;color:#f8fafc}
+#shopOverlay .shop-wallet{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;margin:14px 0;border:1px solid #3f4e70;border-radius:15px;background:#23314c;color:#cbd5e1;font-size:13px}
+#shopOverlay .shop-wallet strong{font-size:24px;color:#fbbf24;font-variant-numeric:tabular-nums}
+#shopOverlay .shop-wallet small{font-size:12px;color:#e2e8f0}
+#shopOverlay .shop-item{background:#1f2937}
+#shopOverlay .cosmetic-card{background:#1f2937}
+#shopOverlay .sub,#shopOverlay .cosmetic-info,#shopOverlay .cosmetic-description small{color:#a9bad1}
+#shopOverlay .cosmetic-heading,#shopOverlay .shop-item .name{color:#f8fafc}
+html[data-oddiro-theme="light"] #shopOverlay,html[data-oddiro-theme="light"] #shopOverlay .sheet{background:#f5f6fa}
+html[data-oddiro-theme="light"] #shopOverlay h2,html[data-oddiro-theme="light"] #shopOverlay .cosmetic-heading{color:#1f2937}
+html[data-oddiro-theme="light"] #shopOverlay .shop-wallet{background:#fff;color:#374151;border-color:#d7deeb}
+html[data-oddiro-theme="light"] #shopOverlay .shop-wallet strong{color:#b45309}
+html[data-oddiro-theme="light"] #shopOverlay .shop-wallet small{color:#475569}
+html[data-oddiro-theme="light"] #shopOverlay .shop-item,html[data-oddiro-theme="light"] #shopOverlay .cosmetic-card{background:#e6eaf1}
+html[data-oddiro-theme="light"] #shopOverlay .shop-item .name{color:#1f2937}
+html[data-oddiro-theme="midnight"] #shopOverlay,html[data-oddiro-theme="midnight"] #shopOverlay .sheet{background:#0c1930}
+html[data-oddiro-theme="mono"] #shopOverlay,html[data-oddiro-theme="mono"] #shopOverlay .sheet{background:#262626}
+
+/* PHASE 5.3: enforce equipped shape on each newly generated tile */
+#grid > .tile {
+  border-radius: var(--oddiro-tile-radius, 2px) !important;
+  -webkit-clip-path: var(--oddiro-tile-clip, none) !important;
+  clip-path: var(--oddiro-tile-clip, none) !important;
+}
+/* Contrast fixes for the light theme: home, shop, and game areas */
+html[data-oddiro-theme="light"] #startOverlay .home-sheet {color:#172033!important}
+html[data-oddiro-theme="light"] #startOverlay .home-overline,
+html[data-oddiro-theme="light"] #startOverlay .home-subtitle,
+html[data-oddiro-theme="light"] #startOverlay .home-section-label span,
+html[data-oddiro-theme="light"] #startOverlay .home-footnote,
+html[data-oddiro-theme="light"] #startOverlay .home-best small {color:#475569!important}
+html[data-oddiro-theme="light"] #startOverlay .home-section-label,
+html[data-oddiro-theme="light"] #startOverlay .mode-copy strong,
+html[data-oddiro-theme="light"] #startOverlay .home-best b,
+html[data-oddiro-theme="light"] #startOverlay .picker-row strong {color:#172033!important}
+html[data-oddiro-theme="light"] #startOverlay .mode-copy small,
+html[data-oddiro-theme="light"] #startOverlay .mode-mark,
+html[data-oddiro-theme="light"] #startOverlay .home-balance small {color:#475569!important}
+html[data-oddiro-theme="light"] #startOverlay .profile-topline,
+html[data-oddiro-theme="light"] #startOverlay .picker-hint {color:#4338ca!important}
+html[data-oddiro-theme="light"] #startOverlay .profile-icon,
+html[data-oddiro-theme="light"] #startOverlay .mode-symbol {background:#e6eafb;color:#3730a3}
+html[data-oddiro-theme="light"] #startOverlay .home-shop-link {background:#e7eaf2!important;color:#1e293b!important;border:1px solid #cbd5e1}
+html[data-oddiro-theme="light"] #app {color:#172033}
+html[data-oddiro-theme="light"] #hud,html[data-oddiro-theme="light"] #stageCaption,
+html[data-oddiro-theme="light"] #ptVal,html[data-oddiro-theme="light"] #bestVal {color:#172033}
+html[data-oddiro-theme="light"] #timeHud,html[data-oddiro-theme="light"] #dailyHud {color:#172033}
+html[data-oddiro-theme="light"] .time-header strong,
+html[data-oddiro-theme="light"] .daily-header strong,
+html[data-oddiro-theme="light"] .time-scores b {color:#172033}
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-description strong,
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-info,
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-description small,
+html[data-oddiro-theme="light"] #shopOverlay .sub,
+html[data-oddiro-theme="light"] #shopOverlay .shop-item .info .desc {color:#334155!important}
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-description strong {color:#172033!important}
+html[data-oddiro-theme="light"] #shopOverlay #shopHomeBtn {background:#dbe4f0!important;color:#1e293b!important}
+html[data-oddiro-theme="light"] #resultOverlay .sheet {background:#fff;color:#172033}
+
+
+/* PHASE 5.4 — light theme contrast repair.
+   Dark action surfaces always carry light text; pale surfaces carry dark text. */
+html[data-oddiro-theme="light"] #bottomNav .nav-btn.secondary,
+html[data-oddiro-theme="light"] #bottomNav .nav-btn.primary {
+  background:#24334f!important;
+  border:1px solid #354c70!important;
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
+  text-shadow:none!important;
+}
+html[data-oddiro-theme="light"] #bottomNav .nav-btn:disabled {
+  background:#53627a!important;
+  color:#f8fafc!important;
+  -webkit-text-fill-color:#f8fafc!important;
+}
+html[data-oddiro-theme="light"] #toolbar .item-btn {
+  background:#ffffff!important;
+  border:1px solid #cbd5e1!important;
+  color:#1f2937!important;
+}
+html[data-oddiro-theme="light"] #toolbar .item-btn.disabled {opacity:.65}
+html[data-oddiro-theme="light"] #toolbar .item-btn .ct {
+  background:#e2e8f0!important;
+  color:#172033!important;
+}
+html[data-oddiro-theme="light"] #toolbar .item-btn .ic {opacity:1}
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-tab:not(.selected) {
+  background:#e2e8f0!important;
+  border-color:#cbd5e1!important;
+  color:#1e293b!important;
+}
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-tab.selected {
+  color:#ffffff!important;
+  background:#4f46e5!important;
+}
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-action:not(:disabled),
+html[data-oddiro-theme="light"] #shopOverlay .buy-btn:not(:disabled),
+html[data-oddiro-theme="light"] #shopOverlay .ad-btn {
+  background:#4f46e5!important;
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
+}
+html[data-oddiro-theme="light"] #shopOverlay .cosmetic-action:disabled,
+html[data-oddiro-theme="light"] #shopOverlay .buy-btn.disabled {
+  background:#cbd5e1!important;
+  color:#334155!important;
+  -webkit-text-fill-color:#334155!important;
+}
+html[data-oddiro-theme="light"] #shopOverlay .shop-item .info .own {
+  color:#075985!important;
+}
+html[data-oddiro-theme="light"] #resultOverlay .sheet h2,
+html[data-oddiro-theme="light"] #resultOverlay .sheet .result-stat,
+html[data-oddiro-theme="light"] #resultOverlay .sheet .result-title {
+  color:#172033!important;
+}
+html[data-oddiro-theme="light"] #resultOverlay .nav-btn.secondary {
+  background:#e2e8f0!important;
+  color:#172033!important;
+}
+html[data-oddiro-theme="light"] #resultOverlay .nav-btn.primary {
+  background:#4f46e5!important;
+  color:#ffffff!important;
+}
+html[data-oddiro-theme="light"] #timeHud .time-scores,
+html[data-oddiro-theme="light"] #dailyHud p,
+html[data-oddiro-theme="light"] .hud-label {
+  color:#475569!important;
+}
+html[data-oddiro-theme="light"] #timeHud .time-score-primary,
+html[data-oddiro-theme="light"] #timeHud .time-score-primary #timeScore,
+html[data-oddiro-theme="light"] #timeHud .time-score-primary small {
+  color:#ffffff!important;
+}
+/* PHASE 6 profile, independent fullscreen page */
+.home-progress-link{display:block;width:100%;min-height:48px;margin-top:10px;background:#273753;color:#f8fafc}
+#profileOverlay{position:absolute;inset:0;z-index:90;display:flex;align-items:stretch;justify-content:center;background:#111827;backdrop-filter:none}
+#profileOverlay .progression-page{width:100%;height:100%;max-width:520px;max-height:none;border:0;border-radius:0;transform:none!important;overflow-y:auto;overscroll-behavior:contain;padding:calc(var(--safe-top) + 6px) 20px calc(var(--safe-bottom) + var(--banner-h) + 22px);background:#111827;color:#f8fafc}
+.progress-header,.progress-rank-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.progress-header h2{font-size:25px;margin:0}.progress-back{border:0;border-radius:12px;background:#29354c;color:#fff;padding:10px 14px;font-weight:700}
+.progress-rank{background:#202d45;border-radius:16px;padding:16px;margin-top:18px}.progress-rank-top span{font-size:13px;color:#bdcbe0}
+.progress-rank-track{height:8px;border-radius:10px;overflow:hidden;background:#394861;margin:12px 0 5px}.progress-rank-track>div{height:100%;background:#818cf8;width:0}
+.progress-rank small{color:#bdcbe0}.progress-current-title{padding:14px 3px;color:#cbd5e1}
+.progress-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0 16px}.progress-tabs button{background:#25324b;color:#d5ddeb;border:none;border-radius:12px;padding:12px 6px;font-weight:700}.progress-tabs button.selected{background:#6366f1;color:#fff}
+.progress-item{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#1f2937;border-radius:13px;padding:13px;margin-bottom:9px;color:#f8fafc}.progress-item>div{display:flex;flex-direction:column;gap:4px}.progress-item small{color:#b5c4da;font-size:11px}.progress-item>span{white-space:nowrap;color:#fbbf24;font-size:12px}.progress-item button{border:0;background:#6366f1;color:#fff;padding:9px;border-radius:8px}.progress-item button:disabled{background:#374151;color:#d1d5db}.progress-note{color:#b9c6d9;font-size:12px;line-height:1.6}.result-progress{background:#25334b;color:#e5e7eb;border-radius:13px;margin:10px auto;padding:10px;text-align:left;font-size:12px;max-height:125px;overflow-y:auto}.result-progress>div{margin:5px 0}
+html[data-oddiro-theme="light"] #profileOverlay,html[data-oddiro-theme="light"] #profileOverlay .progression-page{background:#f5f6fa;color:#172033}
+html[data-oddiro-theme="light"] #profileOverlay .progress-rank,html[data-oddiro-theme="light"] #profileOverlay .progress-item{background:#e6eaf1;color:#172033}
+html[data-oddiro-theme="light"] #profileOverlay .progress-rank-top span,html[data-oddiro-theme="light"] #profileOverlay .progress-rank small,html[data-oddiro-theme="light"] #profileOverlay .progress-item small,html[data-oddiro-theme="light"] #profileOverlay .progress-current-title,html[data-oddiro-theme="light"] #profileOverlay .progress-note{color:#475569}
+html[data-oddiro-theme="light"] .result-progress{background:#e6eaf1;color:#172033}
+
+/* PHASE 6.1 — Light profile / home navigation contrast */
+html[data-oddiro-theme="light"] #startOverlay #homeProfileBtn,
+html[data-oddiro-theme="light"] #startOverlay .home-progress-link {
+  background:#24334f!important;
+  border:1px solid #354866!important;
+  color:#ffffff!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+html[data-oddiro-theme="light"] #profileOverlay .progress-tabs button:not(.selected){
+  background:#24334f!important;color:#ffffff!important;
+}
+html[data-oddiro-theme="light"] #profileOverlay .progress-tabs button.selected{
+  background:#6366f1!important;color:#ffffff!important;
+}
+html[data-oddiro-theme="light"] #profileOverlay .progress-item > span {
+  color:#172033!important;
+  font-weight:700;
+}
+html[data-oddiro-theme="light"] #profileOverlay .progress-item strong,
+html[data-oddiro-theme="light"] #profileOverlay .progress-rank-top strong {
+  color:#172033!important;
+}
+html[data-oddiro-theme="light"] #profileOverlay .progress-item button:not(:disabled),
+html[data-oddiro-theme="light"] #profileOverlay .progress-back {
+  background:#24334f!important;color:#ffffff!important;
+}
+html[data-oddiro-theme="light"] #profileOverlay .progress-item button:disabled {
+  background:#cbd5e1!important;color:#334155!important;
+}
+
+
+/* PHASE 6.2 — premium rainbow background theme.
+   Keep the puzzle tiles and their backing neutral to preserve color-difference gameplay. */
+html[data-oddiro-theme="rainbow_luxe"] {
+  --bg:#10182a; --bg-2:#242844; --ink-0:#f8fafc; --ink-1:#e2e8f0; --ink-2:#c5cee4;
+  color-scheme:dark;
+}
+html[data-oddiro-theme="rainbow_luxe"] #app {
+  background:#111a30!important; color:#f8fafc;
+}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-sheet {
+  background:radial-gradient(ellipse at 8% 9%,rgba(111,82,221,.34),transparent 41%),
+             radial-gradient(ellipse at 92% 21%,rgba(15,184,195,.23),transparent 42%),
+             radial-gradient(ellipse at 56% 93%,rgba(241,85,162,.18),transparent 48%),#111827;
+  color:#f8fafc;
+}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-profile,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .mode-card,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-stage-picker {
+  background:rgba(29,39,65,.96);color:#f8fafc;border-color:#566088;
+}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-profile {
+  box-shadow:0 0 0 1px rgba(184,146,255,.35),0 12px 32px rgba(16,185,205,.12);
+}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-profile .profile-title,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .mode-card .mode-title,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-top h1,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-best b,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .picker-row strong,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .mode-copy strong {color:#f8fafc!important}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .mode-card .mode-desc,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-subtitle,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-footnote,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .picker-row {color:#d2d9ef!important}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-balance,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .mode-current {
+  background:#293451;color:#f8fafc;border-color:#8173d6;
+}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-start-btn,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay #startBtn,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-progress-link {
+  background:linear-gradient(110deg,#654bdb,#ad4db4 54%,#287ea7)!important;color:#fff!important;
+  border:1px solid rgba(255,255,255,.28);text-shadow:0 1px 1px rgba(0,0,0,.24);
+}
+html[data-oddiro-theme="rainbow_luxe"] #bottomNav .nav-btn,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-action:not(:disabled),
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-tab.selected {
+  color:#fff!important;background:#5349ae!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #hud,
+html[data-oddiro-theme="rainbow_luxe"] #stageCaption,
+html[data-oddiro-theme="rainbow_luxe"] #ptVal,
+html[data-oddiro-theme="rainbow_luxe"] #bestVal {color:#f8fafc!important}
+/* Solid backgrounds around the board avoid rainbow interference with the puzzle. */
+html[data-oddiro-theme="rainbow_luxe"] #grid {background-color:transparent}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .sheet,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progression-page,
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .sheet {
+  background:#151c31!important;color:#f8fafc!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .shop-wallet,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .shop-item,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-card,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-rank,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-item {
+  background:#27324d!important;color:#f8fafc!important;
+  border-color:#59638b!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-description strong,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .shop-item .name,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-heading,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay h2,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-header h2,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-item strong {color:#f8fafc!important}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-description small,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-info,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-item small,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-current-title,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-note {color:#d2d9ec!important}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-tab:not(.selected),
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-tabs button:not(.selected),
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-back {
+  background:#303957!important;color:#f8fafc!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-tabs button.selected {background:#6855d5!important;color:white!important}
+html[data-oddiro-theme="rainbow_luxe"] .rainbow-luxe-preview {
+  background:linear-gradient(130deg,#603ed4 0%,#b24eaf 26%,#db6687 44%,#d6a64d 57%,#48b8ab 75%,#527ad4 100%)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+}
+html[data-oddiro-theme="rainbow_luxe"] .rainbow-luxe-preview span {background:rgba(255,255,255,.25)!important}
+/* Preview should advertise rainbow even before the theme is equipped. */
+.rainbow-luxe-preview {
+  background:linear-gradient(130deg,#603ed4,#b24eaf 25%,#db6687 45%,#d6a64d 60%,#48b8ab 78%,#527ad4)!important;
+}
+.rainbow-luxe-preview span {background:rgba(255,255,255,.26)!important}
+@media (prefers-reduced-motion: reduce) {
+  html[data-oddiro-theme="rainbow_luxe"] * {scroll-behavior:auto!important}
+}
+
+
+/* PHASE 6.3 — rainbow luxe should feel premium on every page.
+   Keep the puzzle grid readable by concentrating the rainbow on frames, controls, cards, and glows. */
+html[data-oddiro-theme="rainbow_luxe"] #app{
+  background:
+    radial-gradient(circle at 14% 10%, rgba(110,82,255,.28), transparent 22%),
+    radial-gradient(circle at 86% 14%, rgba(15,203,255,.20), transparent 22%),
+    radial-gradient(circle at 50% 86%, rgba(255,78,166,.20), transparent 26%),
+    linear-gradient(180deg,#0d1430 0%, #10182a 48%, #0c1223 100%)!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #hud,
+html[data-oddiro-theme="rainbow_luxe"] #timeHud,
+html[data-oddiro-theme="rainbow_luxe"] #dailyHud{
+  position:relative;
+}
+html[data-oddiro-theme="rainbow_luxe"] #hud::after,
+html[data-oddiro-theme="rainbow_luxe"] #timeHud::after,
+html[data-oddiro-theme="rainbow_luxe"] #dailyHud::after{
+  content:"";display:block;width:min(420px,86vw);height:2px;margin:10px auto 0;
+  background:linear-gradient(90deg,#6f52dd 0%, #14c7ff 22%, #56e39f 42%, #ffd166 58%, #ff7aa8 80%, #6f52dd 100%);
+  box-shadow:0 0 18px rgba(111,82,221,.42);
+  border-radius:999px;
+}
+html[data-oddiro-theme="rainbow_luxe"] #stageNum,
+html[data-oddiro-theme="rainbow_luxe"] #timeRemaining,
+html[data-oddiro-theme="rainbow_luxe"] .daily-header strong{
+  text-shadow:0 0 18px rgba(255,255,255,.16), 0 0 28px rgba(127,95,255,.22);
+}
+html[data-oddiro-theme="rainbow_luxe"] .pt-pill,
+html[data-oddiro-theme="rainbow_luxe"] .home-balance{
+  background:linear-gradient(135deg,rgba(20,28,52,.96),rgba(41,49,79,.96)) padding-box,
+             linear-gradient(120deg,#7450ff,#13d4ff,#5be8b1,#ffc857,#ff6cab,#7450ff) border-box!important;
+  border:1px solid transparent!important;
+  box-shadow:0 8px 26px rgba(99,77,219,.22);
+}
+html[data-oddiro-theme="rainbow_luxe"] #toolbar .item-btn{
+  background:linear-gradient(180deg,rgba(21,30,56,.98),rgba(14,22,42,.98)) padding-box,
+             linear-gradient(135deg,#5d48d6,#39c0ff,#59dba9,#ffcc66,#ff6ea8,#5d48d6) border-box!important;
+  border:1px solid transparent!important;
+  color:#f8fafc!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.03) inset;
+}
+html[data-oddiro-theme="rainbow_luxe"] #toolbar .item-btn .count,
+html[data-oddiro-theme="rainbow_luxe"] #toolbar .item-btn small,
+html[data-oddiro-theme="rainbow_luxe"] #toolbar .item-btn span{color:#f8fafc!important}
+html[data-oddiro-theme="rainbow_luxe"] #bottomNav .nav-btn,
+html[data-oddiro-theme="rainbow_luxe"] .home-progress-link,
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay #startBtn,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-action:not(:disabled),
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-tab.selected,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-tabs button.selected,
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .nav-btn.primary{
+  background:linear-gradient(110deg,#6d4bff 0%,#22c7ff 23%,#54e3ad 42%,#ffd166 60%,#ff77a8 82%,#6d4bff 100%)!important;
+  color:#ffffff!important;
+  border:1px solid rgba(255,255,255,.30)!important;
+  box-shadow:0 10px 24px rgba(41,20,107,.26), inset 0 1px 0 rgba(255,255,255,.18);
+}
+html[data-oddiro-theme="rainbow_luxe"] #bottomNav .nav-btn.secondary,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay #shopHomeBtn,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-back,
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .nav-btn.secondary{
+  background:linear-gradient(180deg,#24304f,#1a223b)!important;
+  color:#f8fafc!important;
+  border:1px solid rgba(151,127,255,.34)!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .sheet,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progression-page,
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .sheet{
+  background:
+    radial-gradient(circle at 10% 12%, rgba(111,82,221,.20), transparent 24%),
+    radial-gradient(circle at 88% 12%, rgba(16,199,255,.14), transparent 24%),
+    radial-gradient(circle at 52% 95%, rgba(255,108,171,.12), transparent 28%),
+    linear-gradient(180deg,#121931 0%,#141c31 100%)!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .shop-wallet,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .shop-item,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .cosmetic-card,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-rank,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-item,
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .sheet .result-progress{
+  background:linear-gradient(180deg,rgba(38,49,79,.96),rgba(28,36,62,.96)) padding-box,
+             linear-gradient(125deg,rgba(114,86,255,.65),rgba(16,203,255,.55),rgba(255,115,178,.45),rgba(255,205,103,.48),rgba(114,86,255,.65)) border-box!important;
+  border:1px solid transparent!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.22), 0 0 0 1px rgba(255,255,255,.03) inset;
+}
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay h2,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-header h2,
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .result-title,
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay h2{
+  color:#fff!important;
+  text-shadow:0 0 20px rgba(105,91,255,.18);
+}
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progress-item > span,
+html[data-oddiro-theme="rainbow_luxe"] #resultEarned,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .shop-wallet strong{
+  background:linear-gradient(100deg,#ffd166 0%,#ff9f45 30%,#ff6dab 58%,#8d7aff 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] .time-meter,
+html[data-oddiro-theme="rainbow_luxe"] .progress-rank-track{
+  background:#2c3658!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] #timeMeterFill,
+html[data-oddiro-theme="rainbow_luxe"] .progress-rank-track > div,
+html[data-oddiro-theme="rainbow_luxe"] .home-xp-track div{
+  background:linear-gradient(90deg,#6d4bff 0%,#16c8ff 25%,#5ae3a9 50%,#ffd166 74%,#ff77a8 100%)!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] .time-scores .time-score-primary{
+  background:linear-gradient(180deg,#233157,#1a2342) padding-box,
+             linear-gradient(110deg,#7450ff,#18cbff,#59dcad,#ffcf6b,#ff76a8,#7450ff) border-box!important;
+  border:1px solid transparent!important;
+  color:#f8fafc!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] .daily-progress span.complete{
+  background:linear-gradient(90deg,#7450ff,#18cbff,#59dcad,#ffd166,#ff76a8)!important;
+}
+html[data-oddiro-theme="rainbow_luxe"] .toast{
+  background:linear-gradient(120deg,rgba(35,42,74,.95),rgba(30,35,64,.95)) padding-box,
+             linear-gradient(110deg,#6d4bff,#17ceff,#5ee3ad,#ffd166,#ff77a8,#6d4bff) border-box!important;
+  border:1px solid transparent!important;
+  color:#fff!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.30), 0 0 0 1px rgba(255,255,255,.05) inset;
+}
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .medal{
+  background:linear-gradient(130deg,#7450ff,#18cbff,#57e0ae,#ffd166,#ff6daa)!important;
+  box-shadow:0 8px 25px rgba(112,82,221,.25);
+}
+html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .sheet::before,
+html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .sheet::before,
+html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progression-page::before{
+  content:"";display:block;width:100%;height:4px;border-radius:999px;
+  background:linear-gradient(90deg,#6d4bff,#16c8ff,#57e0ae,#ffd166,#ff77a8,#6d4bff);
+  margin-bottom:16px;box-shadow:0 0 20px rgba(109,75,255,.30);
+}
+html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-sheet::before{
+  content:"";display:block;width:100%;height:5px;border-radius:999px;
+  background:linear-gradient(90deg,#6d4bff,#16c8ff,#57e0ae,#ffd166,#ff77a8,#6d4bff);
+  margin:2px 0 18px;box-shadow:0 0 24px rgba(109,75,255,.26);
+}
+@media (prefers-reduced-motion:no-preference){
+  html[data-oddiro-theme="rainbow_luxe"] #startOverlay .home-sheet::before,
+  html[data-oddiro-theme="rainbow_luxe"] #resultOverlay .sheet::before,
+  html[data-oddiro-theme="rainbow_luxe"] #shopOverlay .sheet::before,
+  html[data-oddiro-theme="rainbow_luxe"] #profileOverlay .progression-page::before,
+  html[data-oddiro-theme="rainbow_luxe"] #hud::after,
+  html[data-oddiro-theme="rainbow_luxe"] #timeHud::after,
+  html[data-oddiro-theme="rainbow_luxe"] #dailyHud::after{
+    background-size:220% 100%;
+    animation:oddiro-rainbow-shift 9s linear infinite;
+  }
+}
+@keyframes oddiro-rainbow-shift{0%{background-position:0% 50%}100%{background-position:220% 50%}}
+
+
+/* PHASE 6.4 — fix classic HUD shrink caused by the rainbow divider.
+   The decoration must never participate as a fourth flex item. */
+html[data-oddiro-theme="rainbow_luxe"] #hud {
+  position:relative;
+  padding-bottom:16px;
+  min-width:0;
+}
+html[data-oddiro-theme="rainbow_luxe"] #hud::after {
+  position:absolute;
+  left:20px;
+  right:20px;
+  bottom:2px;
+  width:auto;
+  margin:0;
+  pointer-events:none;
+}
+html[data-oddiro-theme="rainbow_luxe"] #hud .hud-block,
+html[data-oddiro-theme="rainbow_luxe"] #hud .pt-pill {flex-shrink:0;}
+html[data-oddiro-theme="rainbow_luxe"] #hud #stageWrap {
+  flex:1 1 auto;
+  min-width:0;
+  text-align:center;
+}
+html[data-oddiro-theme="rainbow_luxe"] #hud #stageCaption {
+  white-space:nowrap;
+  letter-spacing:.07em;
+}
+@media(max-width:340px){
+  html[data-oddiro-theme="rainbow_luxe"] #hud {padding-left:12px;padding-right:12px;}
+  html[data-oddiro-theme="rainbow_luxe"] #hud::after {left:12px;right:12px;}
+  html[data-oddiro-theme="rainbow_luxe"] #hud #stageCaption {font-size:10px;letter-spacing:0;}
+}
+
+/* PHASE 7: compact, accessible home feedback toggles */
+.feedback-settings{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 2px;padding:12px 14px;background:#1f2937;border:1px solid #37465e;border-radius:13px;color:#f8fafc;font-size:12px;font-weight:700}
+.feedback-settings label{display:flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer}
+.feedback-settings input{accent-color:#818cf8;width:17px;height:17px}
+html[data-oddiro-theme="light"] .feedback-settings{background:#fff;color:#172033;border-color:#cbd5e1}
+html[data-oddiro-theme="rainbow_luxe"] .feedback-settings{background:linear-gradient(180deg,#242c51,#192440) padding-box,linear-gradient(100deg,#7550ff,#19ccff,#59e0ab,#ffd166,#ff7cab) border-box;border:1px solid transparent;color:#fff}
+@media(max-width:350px){.feedback-settings{flex-wrap:wrap}.feedback-settings>span{width:100%}}
+
+/* PHASE 7.2: independent music toggle, responsive settings row. */
+.feedback-settings{flex-wrap:wrap;justify-content:flex-start;gap:10px 15px}
+.feedback-settings>span{margin-right:auto}
+.feedback-settings label{min-height:32px}
+@media(max-width:440px){.feedback-settings>span{flex-basis:100%}}
+
+/* PHASE 7.4 — modest, non-blocking result celebrations */
+#resultCelebration[hidden]{display:none!important}
+#resultCelebration.od-celebration{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:8px auto 12px;max-width:360px}
+.od-celebration-pill{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:5px 11px;border-radius:999px;border:1px solid #8e83ff;background:#2b345a;color:#f5f6ff;font-weight:800;font-size:12px;letter-spacing:.015em;box-shadow:0 5px 18px rgba(68,63,180,.16)}
+#resultCelebration.od-celebration-active .od-celebration-pill{animation:od-result-in .42s ease-out both}
+#resultCelebration.od-celebration-active .od-celebration-pill:nth-child(2){animation-delay:.10s}
+#resultCelebration.od-celebration-active .od-celebration-pill:nth-child(3){animation-delay:.18s}
+#resultCelebration.od-celebration-active .od-celebration-pill:nth-child(4){animation-delay:.25s}
+@keyframes od-result-in{from{opacity:0;transform:translateY(9px) scale(.92)}to{opacity:1;transform:none}}
+html[data-oddiro-theme="light"] .od-celebration-pill{background:#e9eafd;border-color:#857dff;color:#24245f}
+html[data-oddiro-theme="rainbow_luxe"] .od-celebration-pill{background:linear-gradient(120deg,#5946ba,#23649e,#7250a5)!important;border-color:#a6a9ff;color:#fff!important;box-shadow:0 0 15px rgba(118,87,244,.26)}
+@media(prefers-reduced-motion:reduce){#resultCelebration .od-celebration-pill{animation:none!important}}
+
+
+/* PHASE 8.1 — iPhone layout resilience, no game difficulty changes. */
+html,body,#app { min-height:0; }
+#stage { min-height:0; overflow:hidden; }
+#grid {
+  box-sizing:border-box;
+  width:min(100%, 440px, max(160px, calc(100dvh - 290px)));
+  max-height:100%;
+  aspect-ratio:1 / 1;
+  margin-inline:auto;
+}
+#grid .tile { min-width:0; min-height:0; }
+#hud .hud-block { min-width:54px; }
+#stageWrap { min-width:0; }
+#stageCaption { white-space:nowrap; letter-spacing:.06em; font-size:clamp(9px,2.7vw,12px); }
+.pt-pill { min-width:0; flex-shrink:0; }
+#bottomNav { flex-shrink:0; }
+#bottomNav .nav-btn { min-width:0; white-space:nowrap; font-size:clamp(10px,2.8vw,13px); }
+#toolbar { flex-shrink:0; }
+#toolbar .item-btn { min-width:0; }
+#shopOverlay .sheet,#profileOverlay .progression-page,#startOverlay .home-sheet {
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+@media(max-height:700px){
+  #app{padding-top:calc(var(--safe-top) + 5px)}
+  #stage{padding-block:3px}
+  #hud{padding-inline:14px}
+  #stageNum{font-size:clamp(30px,9vw,48px)}
+  #bottomNav .nav-btn{padding-block:10px}
+  #toolbar{margin-block:2px}
+}
+@media(max-width:360px){
+  #hud{padding-inline:10px;gap:5px}
+  #stageCaption{letter-spacing:0}
+  .pt-pill{padding:5px 8px}
+  .time-scores{gap:4px;font-size:10px}
+  .time-scores .time-score-primary{padding:4px 6px}
+  #bottomNav{gap:4px}
+}
+@media(prefers-reduced-motion:reduce){
+  .tile,.nav-btn,.sheet,.toast{transition-duration:0s!important;animation-duration:0s!important}
+}

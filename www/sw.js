@@ -1,6 +1,10 @@
-const CACHE_NAME = "oddiro-cache-v1";
+const CACHE_NAME = "oddiro-cache-v2-phase8-1-iphone-layout";
 const ASSETS = [
   "./index.html",
+  "./assets/audio/plimplom.m4a",
+  "./js/phase1-storage.js",
+  "./js/phase6-progression.js",
+  "./css/phase2-ui.css",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
