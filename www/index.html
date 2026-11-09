@@ -275,8 +275,48 @@
   .toast.show{ transform:translateX(-50%) translateY(0); }
 </style>
 <link rel="stylesheet" href="css/phase2-ui.css">
+<style id="oddiro-launch-style">
+  /* Branded splash shown just after iOS's system launch storyboard. */
+  #oddiroLaunchCover{
+    position:fixed;inset:0;z-index:2147483640;
+    background:#080f29;
+    display:flex;align-items:center;justify-content:center;
+    pointer-events:auto;opacity:1;visibility:visible;
+    transition:opacity .35s ease, visibility .35s ease;
+  }
+  #oddiroLaunchCover img{
+    width:100%;height:100%;object-fit:cover;object-position:center;
+    display:block;
+  }
+  #oddiroLaunchCover.is-gone{opacity:0;visibility:hidden;pointer-events:none;}
+  @media(prefers-reduced-motion:reduce){#oddiroLaunchCover{transition:none;}}
+</style>
 </head>
 <body>
+<div id="oddiroLaunchCover" aria-label="ODDIRO 起動中" role="status">
+  <img src="assets/splash/oddiro-launch.webp" alt="ODDIRO" fetchpriority="high" decoding="sync">
+</div>
+<script>
+/* Minimum branded splash time on app start. No gameplay or saved data is modified. */
+(function(){
+  const launch=document.getElementById('oddiroLaunchCover');
+  const started=Date.now();
+  let released=false;
+  function closeLaunch(){
+    if(released)return;
+    released=true;
+    launch.classList.add('is-gone');
+    window.setTimeout(()=>{if(launch.parentNode)launch.remove();},430);
+  }
+  function afterReady(){
+    window.setTimeout(closeLaunch,Math.max(0,1700-(Date.now()-started)));
+  }
+  if(document.readyState==='complete')afterReady();
+  else window.addEventListener('load',afterReady,{once:true});
+  /* Fail-safe if a third-party resource never finishes loading. */
+  window.setTimeout(closeLaunch,4000);
+})();
+</script>
 <div id="app">
 
   <div id="hud">

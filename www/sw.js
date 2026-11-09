@@ -1,6 +1,7 @@
-const CACHE_NAME = "oddiro-cache-v2-phase8-3-brand-haptics";
+const CACHE_NAME = "oddiro-cache-v2-phase8-4-splash-visible";
 const ASSETS = [
   "./index.html",
+  "./assets/splash/oddiro-launch.webp",
   "./assets/audio/plimplom.m4a",
   "./js/phase1-storage.js",
   "./js/phase6-progression.js",
